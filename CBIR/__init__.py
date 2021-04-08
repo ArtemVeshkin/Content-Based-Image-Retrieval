@@ -1,0 +1,106 @@
+from CBIR.utils import *
+
+import numpy as np
+import pandas as pd
+from PIL import Image
+import os
+
+
+class DataBase:
+    def __init__(self, name: str = 'default'):
+        self.name = name
+        self.images = np.array([])
+        self.features = np.array([], dtype=object)
+        self.binary_codes = np.array([], dtype=object)
+
+        self.__tile_size = 128
+        self.__hash = LSH(32, 12)
+
+    def load_images(self, directory: str):
+        files = os.listdir(directory)
+        image_names = np.array(
+            list(filter(lambda x: x.endswith('.png') or x.endswith('.jpg') or x.endswith('.bmp'), files)))
+        self.images = np.vectorize(lambda x: directory + '/' + x)(image_names)
+
+    def get_image(self, n: int):
+        return np.array(Image.open(self.images[n]))
+
+    def extract_features(self, tile_size: int):
+        self.__tile_size = tile_size
+        self.features = np.zeros(self.images.size, dtype=object)
+        n = 0
+        for image in self.images:
+            image = np.array(Image.open(image))
+            width, height = image.shape[0] // tile_size, image.shape[1] // tile_size
+            features = np.zeros((width, height), dtype=object)
+            for i in range(width):
+                for j in range(height):
+                    tile = image[i * tile_size:(i + 1) * tile_size, j * tile_size:(j + 1) * tile_size, :]
+                    features[i, j] = get_features(tile)
+            self.features[n] = features
+            n += 1
+
+    def binarization(self):
+        self.binary_codes = np.zeros(self.images.shape[0], dtype=object)
+        for n in range(self.features.shape[0]):
+            width, height = self.features[n].shape
+            binary_codes = np.zeros((width, height))
+            for i in range(width):
+                for j in range(height):
+                    binary_codes[i, j] = self.__hash.get_signature(self.features[n][i, j])
+            self.binary_codes[n] = binary_codes
+
+    def serialize(self, filename: str):
+        d = {
+            'Name': self.name,
+            'Images': self.images,
+            'Features': self.features,
+            'Binary_codes': self.binary_codes,
+            'Tile_size': self.__tile_size,
+            'Hash_k_bits': self.__hash.k_bits,
+            'Hash_n_features': self.__hash.n_features,
+            'Hash_seed': self.__hash.seed,
+        }
+        df = pd.DataFrame.from_dict(d, orient='index')
+        df = df.transpose()
+
+        df.to_pickle(filename)
+
+    def deserialize(self, filename: str):
+        df = pd.read_pickle(filename)
+
+        self.name = df['Name'].values[0]
+        self.images = df['Images'].values[0]
+        self.features = df['Features'].values[0]
+        self.binary_codes = df['Binary_codes'].values[0]
+
+        self.__tile_size = df['Tile_size'].values[0]
+        self.__hash.k_bits = df['Hash_k_bits'].values[0]
+        self.__hash.n_features = df['Hash_n_features'].values[0]
+        self.__hash.seed = df['Hash_seed'].values[0]
+
+    def search(self, filename: str):
+        image = np.array(Image.open(filename))
+        width, height = image.shape[0] // self.__tile_size, image.shape[1] // self.__tile_size
+        # Query image binarization
+        binary_codes = np.zeros((width, height))
+        for i in range(width):
+            for j in range(height):
+                tile = image[i * self.__tile_size:(i + 1) * self.__tile_size,
+                       j * self.__tile_size:(j + 1) * self.__tile_size, :]
+                binary_codes[i, j] = self.__hash.get_signature(get_features(tile))
+        binary_codes = binary_codes.ravel()
+
+        c2_indices = []
+        for n in range(self.binary_codes.shape[0]):
+            for i in range(self.binary_codes[n].shape[0] - width + 1):
+                for j in range(self.binary_codes[n].shape[1] - height + 1):
+                    if np.any(np.in1d(self.binary_codes[n][i:i + width, j:j + height], binary_codes.ravel())):
+                        c2_indices.append(np.array([n, i, j]))
+        c2_indices = np.array(c2_indices)
+        if c2_indices.shape[0] == 0:
+            print("No similar fragments in database:(")
+            return
+
+
+__all__ = ['DataBase']
