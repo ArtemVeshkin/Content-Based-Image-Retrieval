@@ -79,7 +79,7 @@ class DataBase:
         self.__hash.n_features = df['Hash_n_features'].values[0]
         self.__hash.seed = df['Hash_seed'].values[0]
 
-    def search(self, filename: str):
+    def search(self, filename: str, top_n: int):
         image = np.array(Image.open(filename))
         width, height = image.shape[0] // self.__tile_size, image.shape[1] // self.__tile_size
         # Query image binarization
@@ -101,6 +101,34 @@ class DataBase:
         if c2_indices.shape[0] == 0:
             print("No similar fragments in database:(")
             return
+        print(c2_indices.shape)
+
+        c2_distances_dict = {}
+        for i in range(c2_indices.shape[0]):
+            print(i)
+            n = c2_indices[i][0]
+            x = c2_indices[i][1]
+            y = c2_indices[i][2]
+            distance = d_near(binary_codes, self.binary_codes[n][x:x + width, y:y + height]) + \
+                       d_near(self.binary_codes[n][x:x + width, y:y + height], binary_codes)
+            c2_distances_dict[distance] = c2_indices[i]
+
+        n = 1
+        keys_sorted = sorted(c2_distances_dict.keys())
+        for k in keys_sorted:
+            img = self.get_image(c2_distances_dict[k][0])
+            x = c2_distances_dict[k][1]
+            y = c2_distances_dict[k][2]
+            print(k)
+            print(c2_distances_dict[k])
+            print()
+            Image.fromarray(normalize_image(img[x * self.__tile_size: (x + width) * self.__tile_size,
+                                            y * self.__tile_size:(y + height) * self.__tile_size])) \
+                .save("Results/top_" + str(n) + ".png")
+
+            if n == top_n:
+                break
+            n += 1
 
 
 __all__ = ['DataBase']

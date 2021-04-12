@@ -30,6 +30,44 @@ class LSH:
         return res
 
 
+# get number of '1's in binary
+def nnz(num):
+    if num == 0:
+        return 0
+    res = 1
+    num = np.bitwise_and(num, num - 1)
+    while num:
+        res += 1
+        num = np.bitwise_and(num, num - 1)
+    return res
+
+
+# Average distance in multiple binary code space
+def d_ave(q, p):
+    q, p = q.ravel().astype('uint32'), p.ravel().astype('uint32')
+    if q.shape != p.shape:
+        raise ValueError("Shapes of input vectors are different")
+
+    res = 0
+    for p_elem in p:
+        for q_elem in q:
+            res += nnz(np.bitwise_xor(p_elem, q_elem))
+        res = res / q.shape[0]
+    return res / p.shape[0]
+
+
+# Nearest distance in multiple binary code space
+def d_near(q, p):
+    q, p = q.ravel().astype('uint32'), p.ravel().astype('uint32')
+    if q.shape != p.shape:
+        raise ValueError("Shapes of input vectors are different")
+
+    res = 0
+    for p_elem in p:
+        res += np.vectorize(lambda x: nnz(np.bitwise_xor(p_elem, x)))(q).min()
+    return res / p.shape[0]
+
+
 def get_features(tile):
     tile_features = []
 
@@ -53,4 +91,3 @@ def get_features(tile):
     tile_features.append(greycoprops(glcm, 'correlation')[0, 0])
 
     return np.array(tile_features)
-
