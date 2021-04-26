@@ -68,6 +68,12 @@ def d_near(q, p):
     return res / p.shape[0]
 
 
+def get_nn_features(tile, model):
+    if model is None:
+        raise ValueError("Model is not loaded")
+    return np.array(model(np.array([tile]))).flatten()
+
+
 def get_features(tile):
     tile_features = []
 
