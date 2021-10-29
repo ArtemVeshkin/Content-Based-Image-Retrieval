@@ -1,0 +1,34 @@
+mode: eval
+feature_extractors:
+  stat:
+    type: stat
+    extractor: get_stat_features
+    n_features: 12
+  conv_v1:
+    type: conv_v1
+    extractor: get_nn_features
+    model_path: ./models/conv_v1.h5
+    n_features: 64
+binary_features_serialization:
+  path: ./temp/
+eval:
+  data_path: ./data/eval/patches-wsi-224-val-z2/
+  classes: [
+            {name: AT, n_queries: 10},
+            {name: BG, n_queries: 10},
+            {name: LP, n_queries: 10},
+            {name: MM, n_queries: 10},
+            {name: TUM, n_queries: 10}
+  ]
+  feature_extractor_type: conv_v1
+  feature_extractor: ${feature_extractors.${eval.feature_extractor_type}}
+  binary_features_serialization: ${binary_features_serialization}
+  tile_size: 112
+  save_results: False
+  top_n: 10
+  LSH_k_bits: 32
+data_generation:
+  scale: 1
+  images_dir: ./
+  output_dir: ./
+  n_images: 1000
