@@ -6,8 +6,6 @@ import numpy as np
 def evaluate(cfg):
     print("=====EVAL STARTED=====")
     database = DataBase(cfg)
-    if 'model_path' in cfg.feature_extractor:
-        database.load_model(to_absolute_path(cfg.feature_extractor.model_path))
 
     query_images = {}
     for dataset in cfg.classes:

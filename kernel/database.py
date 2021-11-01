@@ -1,5 +1,5 @@
 from kernel.utils import LSH, normalize_image, d_near
-from kernel.feature_extraction import get_nn_features, get_stat_features
+from kernel.extractors import EXTRACTORS
 
 from tqdm import tqdm
 
@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import os
-from tensorflow.keras import models, layers
 from hydra.utils import to_absolute_path
 
 
@@ -17,10 +16,8 @@ class DataBase:
         self.name = name
         self.images = {}
         self.binary_features = {}
-        self.model_path = None
-        self.model = None
         self.cfg = cfg
-        self.extractor = globals()[self.cfg.feature_extractor.extractor]
+        self.extractor = EXTRACTORS[cfg.feature_extractor.type](*cfg.feature_extractor.args)
 
         self.__tile_size = cfg.tile_size
         self.__hash = LSH(cfg.LSH_k_bits, cfg.feature_extractor.n_features)
@@ -34,27 +31,14 @@ class DataBase:
         self.images[dataset_name] = all_images[skip_and_return:]
         return all_images[:skip_and_return]
 
-    def load_model(self, model_path: str):
-        self.model_path = model_path
-        self.model = models.load_model(model_path)
-        for i in range(6):
-            self.model.pop()
-        self.model.add(layers.AveragePooling2D((4, 4)))
-
     def get_image(self, dataset_name: str, image_idx: int):
         return np.array(Image.open(self.images[dataset_name][image_idx]))
-
-    def extract_features_for_tile(self, tile):
-        args = [tile]
-        if self.model is not None:
-            args.append(self.model)
-        return self.extractor(*args)
 
     def extract_binary_features(self, dataset_name: str):
         dataset_images = self.images[dataset_name]
         self.binary_features[dataset_name] = np.zeros(dataset_images.shape[0], dtype=object)
         print(f"Extracting binary features for \"{dataset_name}\" dataset with "
-              f"{self.cfg.feature_extractor_type} extractor:")
+              f"{self.cfg.feature_extractor.type} extractor:")
         for n, image in enumerate(tqdm(dataset_images)):
             image = np.array(Image.open(image))
             width, height = image.shape[0] // self.__tile_size, image.shape[1] // self.__tile_size
@@ -63,7 +47,7 @@ class DataBase:
                 for j in range(height):
                     tile = image[i * self.__tile_size:(i + 1) * self.__tile_size,
                            j * self.__tile_size:(j + 1) * self.__tile_size, :]
-                    extracted_features = self.extract_features_for_tile(tile)
+                    extracted_features = self.extractor.extract_features_for_tile(tile)
                     binary_features[i, j] = self.__hash.get_signature(extracted_features)
             self.binary_features[dataset_name][n] = binary_features
 
@@ -117,7 +101,8 @@ class DataBase:
             for j in range(height):
                 tile = image[i * self.__tile_size:(i + 1) * self.__tile_size,
                              j * self.__tile_size:(j + 1) * self.__tile_size, :]
-                query_binary_features[i, j] = self.__hash.get_signature(self.extract_features_for_tile(tile))
+                query_binary_features[i, j] = self.__hash.get_signature(
+                    self.extractor.extract_features_for_tile(tile))
         query_binary_features = query_binary_features.ravel()
 
         c2_candidates = []

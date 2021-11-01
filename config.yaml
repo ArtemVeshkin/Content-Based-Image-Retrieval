@@ -2,12 +2,11 @@ mode: eval
 feature_extractors:
   stat:
     type: stat
-    extractor: get_stat_features
+    args: []
     n_features: 12
-  conv_v1:
-    type: conv_v1
-    extractor: get_nn_features
-    model_path: ./models/conv_v1.h5
+  conv:
+    type: conv
+    args: ['./models/conv_v1.h5']
     n_features: 64
 binary_features_serialization:
   path: ./temp/
@@ -20,7 +19,7 @@ eval:
             {name: MM, n_queries: 10},
             {name: TUM, n_queries: 10}
   ]
-  feature_extractor_type: conv_v1
+  feature_extractor_type: conv
   feature_extractor: ${feature_extractors.${eval.feature_extractor_type}}
   binary_features_serialization: ${binary_features_serialization}
   tile_size: 112

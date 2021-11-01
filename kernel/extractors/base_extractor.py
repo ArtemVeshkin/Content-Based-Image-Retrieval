@@ -1,5 +1,3 @@
 class BaseFeatureExtractor:
-    def __init__(self):
-        pass
-
-    def extract_features
+    def extract_features_for_tile(self, tile):
+        raise NotImplemented()
