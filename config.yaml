@@ -28,7 +28,9 @@ eval:
   top_n: 10
   LSH_k_bits: 32
 data_generation:
-  scale: 1
-  images_dir: ./
+  level: 0 # Levels are numbered from 0 (the highest resolution) to level_count - 1
+  image_dir: ./
+  skip_images: [6,
+                8]
   output_dir: ./
   n_images: 1000
