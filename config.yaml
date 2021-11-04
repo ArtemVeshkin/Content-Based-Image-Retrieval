@@ -34,3 +34,8 @@ data_generation:
                 '8.svs']
   n_images: 10
   tile_size: [224, 224]
+fit_VAE:
+  input_size: 224
+  in_channels: 3
+  lattent_dims: 64
+  hidden_dims: []

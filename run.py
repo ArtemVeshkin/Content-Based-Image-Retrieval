@@ -10,6 +10,9 @@ def main(cfg: DictConfig) -> None:
     elif cfg.mode == 'data_generation':
         import data_generation
         data_generation.data_generation(cfg.data_generation)
+    elif cfg.mode == 'fit_VAE':
+        import fit_VAE
+        fit_VAE.fit_VAE(cfg.fit_VAE)
     else:
         raise ValueError(f"Unknown mode {cfg.mode}")
 
