@@ -1,6 +1,6 @@
 import torch
 from torchsummary import summary
-from VAE import VAE
+from models.VAE import VAE
 
 
 def fit_VAE(cfg):
