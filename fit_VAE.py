@@ -2,6 +2,7 @@ import torch
 from torchsummary import summary
 from models import VAE
 from models import BatchGenerator
+from hydra.utils import to_absolute_path
 
 
 def fit_VAE(cfg):
@@ -18,6 +19,12 @@ def fit_VAE(cfg):
     batch_generator = BatchGenerator(cfg.image_dir, batch_size=cfg.batch_size)
     params = vae.get_params()
     optimizer = torch.optim.Adam(params=params, lr=cfg.lr)
+
+    if cfg.load_checkpoint:
+        load_dict = vae.load(to_absolute_path(cfg.load_path))
+        optimizer.load_state_dict(load_dict['optimizer'])
+        print(f"Loaded checkpoint from {to_absolute_path(cfg.load_path)}\n")
+
     for i in range(cfg.max_steps):
         batch = batch_generator.get_batch()
         batch = torch.FloatTensor(batch)
@@ -30,6 +37,9 @@ def fit_VAE(cfg):
         optimizer.zero_grad()
         loss['loss'].backward()
         optimizer.step()
+
+        if i % cfg.save_every_steps == 0 and i > 0:
+            vae.save(path=to_absolute_path(cfg.save_path), optimizer=optimizer)
 
 
 def print_train_info(cfg):

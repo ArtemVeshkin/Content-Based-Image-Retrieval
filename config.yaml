@@ -35,6 +35,10 @@ data_generation:
   n_images: 1000
   tile_size: [224, 224]
 fit_VAE:
+  load_checkpoint: False
+  load_path: ./models/VAE_checkpoint
+  save_every_steps: 100
+  save_path: ./models/VAE_checkpoint
   image_dir: ./data/VAE_data/train/
   input_size: 224
   in_channels: 3

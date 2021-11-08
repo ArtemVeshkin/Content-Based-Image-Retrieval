@@ -72,6 +72,28 @@ class VAE:
                       kernel_size=3, padding=1),
             nn.Tanh())
 
+    def save(self, path, optimizer):
+        torch.save({
+            'encoder': self.encoder.state_dict(),
+            'decoder': self.decoder.state_dict(),
+            'fc_mu': self.fc_mu.state_dict(),
+            'fc_var': self.fc_var.state_dict(),
+            'decoder_input': self.decoder_input.state_dict(),
+            'final_layer': self.final_layer.state_dict(),
+            'optimizer': optimizer.state_dict()
+        }, path)
+
+    def load(self, path):
+        checkpoint = torch.load(path)
+        self.encoder.load_state_dict(checkpoint['encoder'])
+        self.decoder.load_state_dict(checkpoint['decoder'])
+        self.fc_mu.load_state_dict(checkpoint['fc_mu'])
+        self.fc_var.load_state_dict(checkpoint['fc_var'])
+        self.decoder_input.load_state_dict(checkpoint['decoder_input'])
+        self.final_layer.load_state_dict(checkpoint['final_layer'])
+
+        return {'optimizer': checkpoint['optimizer']}
+
     def move_to_device(self, device):
         self.encoder.to(device)
         self.decoder.to(device)
