@@ -35,7 +35,7 @@ class VAE:
         self.encoder = nn.Sequential(*modules)
         self.encoder_out_size = int(input_size / 2 ** len(hidden_dims))
         self.fc_mu = nn.Linear(hidden_dims[-1] * self.encoder_out_size ** 2, latent_dim)
-        self.fc_var = nn.Linear(hidden_dims[-1] * self.encoder_out_size ** 2 , latent_dim)
+        self.fc_var = nn.Linear(hidden_dims[-1] * self.encoder_out_size ** 2, latent_dim)
 
         # Build Decoder
         modules = []
@@ -71,6 +71,15 @@ class VAE:
             nn.Conv2d(hidden_dims[-1], out_channels=3,
                       kernel_size=3, padding=1),
             nn.Tanh())
+
+    def get_params(self):
+        params = [*self.encoder.parameters(),
+                  *self.decoder.parameters(),
+                  *self.fc_mu.parameters(),
+                  *self.fc_var.parameters(),
+                  *self.decoder_input.parameters(),
+                  *self.final_layer.parameters()]
+        return params
 
     def encode(self, input: Tensor) -> List[Tensor]:
         """

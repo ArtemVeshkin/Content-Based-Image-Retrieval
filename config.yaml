@@ -39,3 +39,5 @@ fit_VAE:
   in_channels: 3
   lattent_dims: 64
   hidden_dims: []
+  lr: 0.0001
+  max_steps: 100
