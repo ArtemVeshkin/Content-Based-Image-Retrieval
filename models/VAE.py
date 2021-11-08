@@ -72,6 +72,14 @@ class VAE:
                       kernel_size=3, padding=1),
             nn.Tanh())
 
+    def move_to_device(self, device):
+        self.encoder.to(device)
+        self.decoder.to(device)
+        self.fc_mu.to(device)
+        self.fc_var.to(device)
+        self.decoder_input.to(device)
+        self.final_layer.to(device)
+
     def get_params(self):
         params = [*self.encoder.parameters(),
                   *self.decoder.parameters(),
