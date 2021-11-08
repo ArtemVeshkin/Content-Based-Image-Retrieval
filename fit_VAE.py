@@ -23,7 +23,9 @@ def fit_VAE(cfg):
         batch = torch.FloatTensor(batch)
         batch = batch.to(device)
         loss = vae.loss_function(*vae.forward(batch), **{'M_N': 1})
-        print(f"Step {i}: loss = {loss['loss']}")
+        print(f"Step {i}: loss = {loss['loss']:0.4f} | "
+              f"Reconstruction part = {loss['Reconstruction_Loss']:0.4f} | "
+              f"KLD part = {loss['KLD']:0.4f}")
 
         optimizer.zero_grad()
         loss['loss'].backward()
