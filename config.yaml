@@ -32,12 +32,13 @@ data_generation:
   output_dir: ./data/VAE_data/train/
   skip_images: ['6.svs',
                 '8.svs']
-  n_images: 10
+  n_images: 1000
   tile_size: [224, 224]
 fit_VAE:
+  image_dir: ./data/VAE_data/train/
   input_size: 224
   in_channels: 3
   lattent_dims: 64
   hidden_dims: []
-  lr: 0.0001
-  max_steps: 100
+  lr: 0.00001
+  max_steps: 1000
