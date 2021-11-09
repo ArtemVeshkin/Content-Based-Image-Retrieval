@@ -219,6 +219,14 @@ class VAE:
         samples = self.decode(z)
         return samples
 
+    def sample_from_image(self, image, idx=0):
+        image = torch.FloatTensor(image)
+        if torch.cuda.is_available():
+            image.to(torch.device('cuda:0'))
+        encoded = self.encoder(image)
+        decoded = self.decoder(encoded)
+        return self.final_layer(decoded)
+
     def generate(self, x: Tensor, **kwargs) -> Tensor:
         """
         Given an input image x, returns the reconstructed image

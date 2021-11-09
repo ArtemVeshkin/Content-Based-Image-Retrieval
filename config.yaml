@@ -42,9 +42,10 @@ fit_VAE:
   image_dir: ./data/VAE_data/train/
   input_size: 224
   in_channels: 3
-  lattent_dims: 64
+  lattent_dims: 128
   hidden_dims: []
   KLD_weigth: 1
   batch_size: 20
   lr: 0.0001
-  max_steps: 1000
+  max_steps: 5
+  sample_after_training: True

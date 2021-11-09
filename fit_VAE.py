@@ -4,6 +4,9 @@ from models import BatchGenerator
 from hydra.utils import to_absolute_path
 import matplotlib.pyplot as plt
 import numpy as np
+from torch.nn import functional as F
+from PIL import Image
+from kernel.utils import normalize_image
 
 
 def fit_VAE(cfg):
@@ -15,7 +18,7 @@ def fit_VAE(cfg):
               cfg.lattent_dims, hidden_dims)
     vae.move_to_device(device)
 
-    vae.summary()
+    # vae.summary()
     print_train_info(cfg)
 
     batch_generator = BatchGenerator(cfg.image_dir, batch_size=cfg.batch_size)
@@ -32,9 +35,12 @@ def fit_VAE(cfg):
         batch = torch.FloatTensor(batch)
         batch = batch.to(device)
         loss = vae.loss_function(*vae.forward(batch), **{'M_N': cfg.KLD_weigth})
-        print(f"Step {i}: loss = {loss['loss']:0.4f} | "
-              f"Reconstruction part = {loss['Reconstruction_Loss']:0.4f} | "
-              f"KLD part = {loss['KLD']:0.4f}")
+        sample_from_batch = vae.sample_from_image(batch)
+        mse = F.mse_loss(torch.FloatTensor(batch), torch.FloatTensor(sample_from_batch)).item()
+        print(f"Step {i}: loss = {loss['loss']:0.6f} | "
+              f"Reconstruction part = {loss['Reconstruction_Loss']:0.6f} | "
+              f"KLD part = {loss['KLD']:0.6f} | "
+              f"MSE = {mse:0.6f}")
 
         optimizer.zero_grad()
         loss['loss'].backward()
@@ -42,10 +48,19 @@ def fit_VAE(cfg):
 
         if i % cfg.save_every_steps == 0 and i > 0:
             vae.save(path=to_absolute_path(cfg.save_path), optimizer=optimizer)
-    # sample = vae.sample(1, device).detach().numpy()[0]
-    # sample = 0.3 * sample[0, :, :] + 0.59 * sample[1, :, :] + 0.11 * sample[2, :, :]
-    # plt.imshow(sample)
-    # plt.show()
+
+    if cfg.sample_after_training:
+        f, axarr = plt.subplots(2, 1)
+        image = batch_generator.get_batch()
+        image = torch.FloatTensor(image)
+        sample = vae.sample_from_image(image)
+        sample = sample[0].detach().numpy()
+        image = image[0].detach().numpy()
+        image = np.moveaxis(image, 0, -1)
+        sample = np.moveaxis(sample, 0, -1)
+        axarr[0].imshow(normalize_image(image * 255))
+        axarr[1].imshow(normalize_image(sample * 255))
+        plt.show()
 
 
 def print_train_info(cfg):
