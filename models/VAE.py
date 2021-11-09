@@ -115,6 +115,8 @@ class VAE:
     def summary(self):
         print(f"=====MODEL SUMMARY=====")
         tensor = torch.FloatTensor(10, 3, 224, 224)
+        if torch.cuda.is_available():
+            tensor.to(torch.device("cuda:0"))
         print("Encoder:")
         summary(self.encoder, tensor.shape[1:])
         mu, log_var = self.encode(tensor)
