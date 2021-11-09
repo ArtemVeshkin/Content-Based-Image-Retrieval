@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from typing import List, TypeVar
+from torchsummary import summary
 
 Tensor = TypeVar('Tensor')
 
@@ -84,7 +85,7 @@ class VAE:
         }, path)
 
     def load(self, path):
-        checkpoint = torch.load(path)
+        checkpoint = torch.load(path, map_location=torch.device('cpu'))
         self.encoder.load_state_dict(checkpoint['encoder'])
         self.decoder.load_state_dict(checkpoint['decoder'])
         self.fc_mu.load_state_dict(checkpoint['fc_mu'])
@@ -110,6 +111,22 @@ class VAE:
                   *self.decoder_input.parameters(),
                   *self.final_layer.parameters()]
         return params
+
+    def summary(self):
+        print(f"=====MODEL SUMMARY=====")
+        tensor = torch.FloatTensor(10, 3, 224, 224)
+        print("Encoder:")
+        summary(self.encoder, tensor.shape[1:])
+        mu, log_var = self.encode(tensor)
+        z = self.reparameterize(mu, log_var)
+        tensor = self.decoder_input(z)
+        tensor = tensor.view(-1, self.encoder_last_hidden_dim,
+                             self.encoder_out_size, self.encoder_out_size)
+        print("\nDecoder:")
+        summary(self.decoder, tensor.shape[1:])
+        tensor = self.decoder(tensor)
+        print("\nFinal layer:")
+        summary(self.final_layer, tensor.shape[1:])
 
     def encode(self, input: Tensor) -> List[Tensor]:
         """
@@ -180,7 +197,7 @@ class VAE:
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
 
         loss = recons_loss + kld_weight * kld_loss
-        return {'loss': loss, 'Reconstruction_Loss': recons_loss, 'KLD': -kld_loss}
+        return {'loss': loss, 'Reconstruction_Loss': recons_loss, 'KLD': kld_loss}
 
     def sample(self,
                num_samples: int,

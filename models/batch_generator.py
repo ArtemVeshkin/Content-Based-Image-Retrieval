@@ -35,4 +35,4 @@ class BatchGenerator:
         k = min(self.batch_size * self.n_batches, len(self.image_names))
         images_to_load = random.choices(self.image_names, k=k)
         del self.loaded_images
-        self.loaded_images = [np.array(Image.open(image)) for image in images_to_load]
+        self.loaded_images = [np.array(Image.open(image)) / 255 for image in images_to_load]
