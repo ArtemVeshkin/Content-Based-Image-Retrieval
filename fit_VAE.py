@@ -20,7 +20,8 @@ def fit_VAE(cfg):
 
     print_train_info(cfg)
 
-    batch_generator = BatchGenerator(cfg.image_dir, batch_size=cfg.batch_size)
+    batch_generator = BatchGenerator(cfg.image_dir, batch_size=cfg.batch_size,
+                                     skip_background=cfg.skip_background)
     params = vae.get_params()
     optimizer = torch.optim.Adam(params=params, lr=cfg.lr)
 
@@ -61,7 +62,6 @@ def fit_VAE(cfg):
             sample = np.moveaxis(sample, 0, -1)
             axarr[0, i].imshow(normalize_image(image * 255))
             axarr[1, i].imshow(normalize_image(sample * 255))
-            ce = -np.mean(np.log(np.abs(sample - image)))
             axarr[1, i].set_xlabel(f"MSE = {((sample - image)**2).mean():0.4f}, "
                                    f"MAE = {(np.abs(sample - image)).mean():0.4f}")
         plt.show()

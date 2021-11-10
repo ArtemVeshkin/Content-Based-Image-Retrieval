@@ -35,7 +35,8 @@ data_generation:
   n_images: 1000
   tile_size: [224, 224]
 fit_VAE:
-  load_checkpoint: False
+  skip_background: True
+  load_checkpoint: True
   load_path: ./models/VAE_checkpoint
   save_every_steps: 100
   save_path: ./models/VAE_checkpoint
@@ -43,8 +44,8 @@ fit_VAE:
   input_size: 224
   in_channels: 3
   lattent_dims: 64
-  hidden_dims: []
-  recons_loss: mae_max
+  hidden_dims: [16,32,64,128,256]
+  recons_loss: mae
   KLD_weigth: 0.5
   batch_size: 20
   lr: 0.0001

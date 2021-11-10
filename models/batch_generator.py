@@ -6,9 +6,10 @@ from PIL import Image
 
 
 class BatchGenerator:
-    def __init__(self, image_dir, batch_size=64, n_batches=10):
+    def __init__(self, image_dir, batch_size=64, n_batches=10, skip_background=False):
         self.batch_size = batch_size
         self.n_batches = n_batches
+        self.skip_background = skip_background
 
         image_dir = to_absolute_path(image_dir)
         files = os.listdir(image_dir)
@@ -33,6 +34,14 @@ class BatchGenerator:
 
     def _load_images(self):
         k = min(self.batch_size * self.n_batches, len(self.image_names))
-        images_to_load = random.choices(self.image_names, k=k)
         del self.loaded_images
-        self.loaded_images = [np.array(Image.open(image)) / 255 for image in images_to_load]
+        loaded = 0
+        self.loaded_images = []
+        while loaded < k:
+            image = random.choice(self.image_names)
+            image = np.array(Image.open(image)) / 255
+            if self.skip_background:
+                if image.mean() > 0.9:
+                    continue
+            self.loaded_images.append(image)
+            loaded += 1
