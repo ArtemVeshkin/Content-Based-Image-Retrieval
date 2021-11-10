@@ -71,7 +71,7 @@ class VAE:
             nn.LeakyReLU(),
             nn.Conv2d(hidden_dims[-1], out_channels=3,
                       kernel_size=3, padding=1),
-            nn.Tanh())
+            nn.Sigmoid())
 
     def save(self, path, optimizer):
         torch.save({
@@ -198,7 +198,8 @@ class VAE:
         if recons_loss_type == 'mse':
             recons_loss = F.mse_loss(recons, input)
         elif recons_loss_type == 'ce':
-            recons_loss = F.cross_entropy(recons, input)
+            recons_loss = -torch.mean(input * torch.log(recons)
+                                      + (1 - input) * torch.log(1 - recons))
         else:
             raise ValueError(f"Unknown recons loss type: {recons_loss_type}")
 

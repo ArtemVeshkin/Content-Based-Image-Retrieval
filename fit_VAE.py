@@ -61,9 +61,9 @@ def fit_VAE(cfg):
             sample = np.moveaxis(sample, 0, -1)
             axarr[0, i].imshow(normalize_image(image * 255))
             axarr[1, i].imshow(normalize_image(sample * 255))
-            ce = -(1.0 / len(image)) * np.sum(image * np.log(sample) +
-                                              (1 - image) * np.log(1 - sample))
-            axarr[1, i].set_xlabel(f"CE = {ce}")
+            ce = -np.mean(image * np.log(sample)
+                          + (1 - image) * np.log(1 - sample))
+            axarr[1, i].set_xlabel(f"CE = {ce:0.4f}, MSE = {((sample - image)**2).mean():0.4f}")
         plt.show()
 
 
