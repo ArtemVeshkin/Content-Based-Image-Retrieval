@@ -36,7 +36,7 @@ def fit_VAE(cfg):
         batch = batch.to(device)
         loss = vae.loss_function(*vae.forward(batch), **{'M_N': cfg.KLD_weigth})
         sample_from_batch = vae.sample_from_image(batch)
-        mse = F.mse_loss(torch.FloatTensor(batch), torch.FloatTensor(sample_from_batch)).item()
+        mse = F.mse_loss(batch, sample_from_batch).item()
         print(f"Step {i}: loss = {loss['loss']:0.6f} | "
               f"Reconstruction part = {loss['Reconstruction_Loss']:0.6f} | "
               f"KLD part = {loss['KLD']:0.6f} | "
