@@ -36,7 +36,7 @@ data_generation:
   tile_size: [224, 224]
 fit_VAE:
   load_checkpoint: False
-  load_path: ./models/Checkpoints/8k_steps_0.0001_lr_[16,32,64,128,256]
+  load_path: ./models/VAE_checkpoint
   save_every_steps: 100
   save_path: ./models/VAE_checkpoint
   image_dir: ./data/VAE_data/train/
@@ -44,7 +44,7 @@ fit_VAE:
   in_channels: 3
   lattent_dims: 64
   hidden_dims: []
-  recons_loss: ce
+  recons_loss: mae
   KLD_weigth: 1
   batch_size: 20
   lr: 0.0001
