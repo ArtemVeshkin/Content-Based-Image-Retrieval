@@ -44,10 +44,10 @@ fit_VAE:
   in_channels: 3
   lattent_dims: 64
   hidden_dims: []
-  recons_loss: mae
-  KLD_weigth: 1
+  recons_loss: mae_max
+  KLD_weigth: 0.5
   batch_size: 20
   lr: 0.0001
-  max_steps: 5
-  sample_after_training: False
+  max_steps: 0
+  sample_after_training: True
   n_samples: 4

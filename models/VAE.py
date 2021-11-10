@@ -199,6 +199,8 @@ class VAE:
             recons_loss = F.mse_loss(recons, input)
         elif recons_loss_type == 'mae':
             recons_loss = torch.mean(torch.abs(recons - input))
+        elif recons_loss_type == 'mae_max':
+            recons_loss = torch.max(torch.mean(torch.abs(recons - input), dim=(1, 2, 3)))
         else:
             raise ValueError(f"Unknown recons loss type: {recons_loss_type}")
 
