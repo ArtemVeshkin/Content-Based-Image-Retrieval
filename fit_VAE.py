@@ -18,7 +18,6 @@ def fit_VAE(cfg):
               cfg.lattent_dims, hidden_dims)
     vae.move_to_device(device)
 
-    # vae.summary()
     print_train_info(cfg)
 
     batch_generator = BatchGenerator(cfg.image_dir, batch_size=cfg.batch_size)
@@ -34,7 +33,8 @@ def fit_VAE(cfg):
         batch = batch_generator.get_batch()
         batch = torch.FloatTensor(batch)
         batch = batch.to(device)
-        loss = vae.loss_function(*vae.forward(batch), **{'M_N': cfg.KLD_weigth})
+        loss = vae.loss_function(*vae.forward(batch), **{'M_N': cfg.KLD_weigth,
+                                                         'recons_loss': cfg.recons_loss})
         sample_from_batch = vae.sample_from_image(batch)
         mse = F.mse_loss(batch, sample_from_batch).item()
         print(f"Step {i}: loss = {loss['loss']:0.6f} | "
@@ -50,16 +50,20 @@ def fit_VAE(cfg):
             vae.save(path=to_absolute_path(cfg.save_path), optimizer=optimizer)
 
     if cfg.sample_after_training:
-        f, axarr = plt.subplots(2, 1)
-        image = batch_generator.get_batch()
-        image = torch.FloatTensor(image)
-        sample = vae.sample_from_image(image)
-        sample = sample[0].detach().numpy()
-        image = image[0].detach().numpy()
-        image = np.moveaxis(image, 0, -1)
-        sample = np.moveaxis(sample, 0, -1)
-        axarr[0].imshow(normalize_image(image * 255))
-        axarr[1].imshow(normalize_image(sample * 255))
+        f, axarr = plt.subplots(2, cfg.n_samples)
+        batch = batch_generator.get_batch()
+        batch = torch.FloatTensor(batch)
+        sample_from_batch = vae.sample_from_image(batch)
+        for i in range(min(cfg.n_samples, cfg.batch_size)):
+            sample = sample_from_batch[i].detach().numpy()
+            image = batch[i].detach().numpy()
+            image = np.moveaxis(image, 0, -1)
+            sample = np.moveaxis(sample, 0, -1)
+            axarr[0, i].imshow(normalize_image(image * 255))
+            axarr[1, i].imshow(normalize_image(sample * 255))
+            ce = -(1.0 / len(image)) * np.sum(image * np.log(sample) +
+                                              (1 - image) * np.log(1 - sample))
+            axarr[1, i].set_xlabel(f"CE = {ce}")
         plt.show()
 
 

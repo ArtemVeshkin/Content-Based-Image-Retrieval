@@ -194,7 +194,13 @@ class VAE:
         log_var = args[3]
 
         kld_weight = kwargs['M_N']  # Account for the minibatch samples from the dataset
-        recons_loss = F.mse_loss(recons, input)
+        recons_loss_type = kwargs['recons_loss']
+        if recons_loss_type == 'mse':
+            recons_loss = F.mse_loss(recons, input)
+        elif recons_loss_type == 'ce':
+            recons_loss = F.cross_entropy(recons, input)
+        else:
+            raise ValueError(f"Unknown recons loss type: {recons_loss_type}")
 
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
 
