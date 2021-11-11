@@ -3,6 +3,8 @@ from torch import nn
 from torch.nn import functional as F
 from typing import List, TypeVar
 from torchsummary import summary
+from skimage.metrics import structural_similarity as ssim
+import numpy as np
 
 Tensor = TypeVar('Tensor')
 
@@ -202,6 +204,17 @@ class VAE:
             recons_loss = torch.mean(torch.abs(recons - input))
         elif recons_loss_type == 'mae_max':
             recons_loss = torch.max(torch.mean(torch.abs(recons - input), dim=(1, 2, 3)))
+        elif recons_loss_type == 'ssim':
+            input = input.detach().numpy()
+            recons = recons.detach().numpy()
+            input = np.moveaxis(input, 0, -1)
+            recons = np.moveaxis(recons, 0, -1)
+            recons_loss = [-ssim(input[i], recons[i], multichannel=True)
+                           for i in range(input.shape[0])]
+            recons_loss = torch.FloatTensor(recons_loss)
+            if torch.cuda.is_available():
+                recons_loss.to(torch.device('cuda:0'))
+            recons_loss = torch.mean(recons_loss)
         else:
             raise ValueError(f"Unknown recons loss type: {recons_loss_type}")
 
