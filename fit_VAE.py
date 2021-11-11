@@ -5,7 +5,6 @@ from hydra.utils import to_absolute_path
 import matplotlib.pyplot as plt
 import numpy as np
 from torch.nn import functional as F
-from skimage.metrics import structural_similarity as ssim
 from kernel.utils import normalize_image
 
 
@@ -66,8 +65,7 @@ def fit_VAE(cfg):
             axarr[0, i].imshow(normalize_image(image * 255))
             axarr[1, i].imshow(normalize_image(sample * 255))
             axarr[1, i].set_xlabel(f"MSE = {((sample - image)**2).mean():0.4f}, "
-                                   f"MAE = {(np.abs(sample - image)).mean():0.4f}\n"
-                                   f"SSIM = {ssim(image, sample, multichannel=True):0.4f}")
+                                   f"MAE = {(np.abs(sample - image)).mean():0.4f}")
         plt.show()
 
 
