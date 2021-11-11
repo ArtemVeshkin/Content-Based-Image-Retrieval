@@ -6,7 +6,7 @@ from PIL import Image
 
 
 class BatchGenerator:
-    def __init__(self, image_dir, batch_size=64, n_batches=10, skip_background=False):
+    def __init__(self, image_dir, batch_size=64, n_batches=50, skip_background=False):
         self.batch_size = batch_size
         self.n_batches = n_batches
         self.skip_background = skip_background

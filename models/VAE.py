@@ -194,6 +194,7 @@ class VAE:
         log_var = args[3]
 
         kld_weight = kwargs['M_N']  # Account for the minibatch samples from the dataset
+        var_weight = kwargs['var_weight']
         recons_loss_type = kwargs['recons_loss']
         if recons_loss_type == 'mse':
             recons_loss = F.mse_loss(recons, input)
@@ -206,8 +207,10 @@ class VAE:
 
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
 
-        loss = recons_loss + kld_weight * kld_loss
-        return {'loss': loss, 'Reconstruction_Loss': recons_loss, 'KLD': kld_loss}
+        var = recons.var()
+
+        loss = recons_loss + kld_weight * kld_loss - var_weight * var
+        return {'loss': loss, 'Reconstruction_Loss': recons_loss, 'KLD': kld_loss, 'var': var}
 
     def sample(self,
                num_samples: int,

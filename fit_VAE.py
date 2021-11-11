@@ -34,14 +34,16 @@ def fit_VAE(cfg):
         batch = batch_generator.get_batch()
         batch = torch.FloatTensor(batch)
         batch = batch.to(device)
-        loss = vae.loss_function(*vae.forward(batch), **{'M_N': cfg.KLD_weigth,
-                                                         'recons_loss': cfg.recons_loss})
+        loss = vae.loss_function(*vae.forward(batch), **{'M_N': cfg.KLD_weight,
+                                                         'recons_loss': cfg.recons_loss,
+                                                         'var_weight': cfg.var_weight})
         sample_from_batch = vae.sample_from_image(batch)
         mse = F.mse_loss(batch, sample_from_batch).item()
         print(f"Step {i}: loss = {loss['loss']:0.6f} | "
               f"Reconstruction part = {loss['Reconstruction_Loss']:0.6f} | "
               f"KLD part = {loss['KLD']:0.6f} | "
-              f"MSE = {mse:0.6f}")
+              f"MSE = {mse:0.6f} | "
+              f"var = {loss['var']:0.6f}")
 
         optimizer.zero_grad()
         loss['loss'].backward()

@@ -46,7 +46,8 @@ fit_VAE:
   lattent_dims: 64
   hidden_dims: [16,32,64,128,256]
   recons_loss: mae
-  KLD_weigth: 0.5
+  KLD_weight: 0.5
+  var_weight: 10
   batch_size: 20
   lr: 0.0001
   max_steps: 0
