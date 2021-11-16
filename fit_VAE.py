@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from torch.nn import functional as F
 from kernel.utils import normalize_image
+from skimage.transform import resize
 
 
 def fit_VAE(cfg):
@@ -20,9 +21,10 @@ def fit_VAE(cfg):
     print_train_info(cfg)
 
     batch_generator = BatchGenerator(cfg.image_dir, batch_size=cfg.batch_size,
-                                     skip_background=cfg.skip_background)
+                                     skip_background=cfg.skip_background,
+                                     use_MNIST=cfg.use_MNIST)
     params = vae.get_params()
-    optimizer = torch.optim.Adam(params=params, lr=cfg.lr)
+    optimizer = torch.optim.Adam(params=params, lr=cfg.lr, weight_decay=1e-5)
 
     if cfg.load_checkpoint:
         load_dict = vae.load(to_absolute_path(cfg.load_path))

@@ -3,13 +3,19 @@ import os
 import numpy as np
 import random
 from PIL import Image
+from torchvision.datasets import MNIST
+from skimage.transform import resize
+import matplotlib.pyplot as plt
 
 
 class BatchGenerator:
-    def __init__(self, image_dir, batch_size=64, n_batches=50, skip_background=False):
+    def __init__(self, image_dir, batch_size=64, n_batches=50,
+                 skip_background=False, use_MNIST=False):
         self.batch_size = batch_size
         self.n_batches = n_batches
         self.skip_background = skip_background
+        self.use_MNIST = use_MNIST
+        self.MNIST_data = None
 
         image_dir = to_absolute_path(image_dir)
         files = os.listdir(image_dir)
@@ -24,6 +30,25 @@ class BatchGenerator:
         self.loaded_images = []
 
     def get_batch(self):
+        if self.use_MNIST:
+            if self.MNIST_data is None:
+                print(f"=====LOADING MNIST=====")
+                self.MNIST_data = MNIST(
+                    root='data',
+                    train=True,
+                    download=True
+                )
+            im_size = 64
+            batch = np.array([
+                np.reshape(
+                    np.tile(
+                        resize(random.choice(self.MNIST_data.data).numpy(), (im_size, im_size)),
+                        (3, 1)),
+                    (3, im_size, im_size))
+                for _ in range(self.batch_size)])
+
+            return batch
+
         if len(self.loaded_images) < self.batch_size:
             self._load_images()
 
