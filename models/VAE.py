@@ -18,6 +18,7 @@ class VAE:
                  hidden_dims: List = None,
                  **kwargs) -> None:
         self.latent_dim = latent_dim
+        self.input_size = input_size
 
         modules = []
         if hidden_dims is None:
@@ -117,7 +118,7 @@ class VAE:
 
     def summary(self):
         print(f"=====MODEL SUMMARY=====")
-        tensor = torch.FloatTensor(10, 3, 224, 224)
+        tensor = torch.FloatTensor(10, 3, self.input_size, self.input_size)
         if torch.cuda.is_available():
             tensor.to(torch.device("cuda:0"))
         print("Encoder:")

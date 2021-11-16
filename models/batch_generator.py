@@ -10,12 +10,13 @@ import matplotlib.pyplot as plt
 
 class BatchGenerator:
     def __init__(self, image_dir, batch_size=64, n_batches=50,
-                 skip_background=False, use_MNIST=False):
+                 skip_background=False, use_MNIST=False, input_size=224):
         self.batch_size = batch_size
         self.n_batches = n_batches
         self.skip_background = skip_background
         self.use_MNIST = use_MNIST
         self.MNIST_data = None
+        self.input_size = input_size
 
         image_dir = to_absolute_path(image_dir)
         files = os.listdir(image_dir)
@@ -38,7 +39,7 @@ class BatchGenerator:
                     train=True,
                     download=True
                 )
-            im_size = 64
+            im_size = self.input_size
             batch = np.array([
                 np.reshape(
                     np.tile(

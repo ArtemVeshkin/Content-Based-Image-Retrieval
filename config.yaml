@@ -42,15 +42,15 @@ fit_VAE:
   save_every_steps: 100
   save_path: ./models/VAE_checkpoint
   image_dir: ./data/VAE_data/train/
-  input_size: 64
+  input_size: 128
   in_channels: 3
   lattent_dims: 64
-  hidden_dims: [8,16,32,64,128]
+  hidden_dims: [8,16,32,64,128,256,512]
   recons_loss: ssim
-  KLD_weight: 0.5
+  KLD_weight: 1
   var_weight: 0
   batch_size: 20
   lr: 0.0001
-  max_steps: 500
+  max_steps: 5
   sample_after_training: True
   n_samples: 4

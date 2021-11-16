@@ -19,10 +19,11 @@ def fit_VAE(cfg):
     vae.move_to_device(device)
 
     print_train_info(cfg)
+    # vae.summary()
 
     batch_generator = BatchGenerator(cfg.image_dir, batch_size=cfg.batch_size,
                                      skip_background=cfg.skip_background,
-                                     use_MNIST=cfg.use_MNIST)
+                                     use_MNIST=cfg.use_MNIST, input_size=cfg.input_size)
     params = vae.get_params()
     optimizer = torch.optim.Adam(params=params, lr=cfg.lr, weight_decay=1e-5)
 
@@ -55,10 +56,13 @@ def fit_VAE(cfg):
             vae.save(path=to_absolute_path(cfg.save_path), optimizer=optimizer)
 
     if cfg.sample_after_training:
-        f, axarr = plt.subplots(2, cfg.n_samples)
+        f, axarr = plt.subplots(3, cfg.n_samples)
         batch = batch_generator.get_batch()
         batch = torch.FloatTensor(batch)
         sample_from_batch = vae.sample_from_image(batch)
+        # sample_from_batch = vae.generate(batch)
+
+        randomly_generated = []
         for i in range(min(cfg.n_samples, cfg.batch_size)):
             sample = sample_from_batch[i].detach().numpy()
             image = batch[i].detach().numpy()
@@ -68,6 +72,25 @@ def fit_VAE(cfg):
             axarr[1, i].imshow(normalize_image(sample * 255))
             axarr[1, i].set_xlabel(f"MSE = {((sample - image)**2).mean():0.4f}, "
                                    f"MAE = {(np.abs(sample - image)).mean():0.4f}")
+
+            generated = vae.sample(1, device).detach().numpy()[0]
+            generated = np.moveaxis(generated, 0, -1)
+            randomly_generated.append(generated)
+            if i == min(cfg.n_samples, cfg.batch_size) - 1:
+                diff = (randomly_generated[0] - randomly_generated[1]) > 0.01
+                result = np.zeros(diff.shape, dtype='uint8')
+                diff_val = 100
+                result[diff] = diff_val
+                w, h, _ = diff.shape
+                for m in range(w):
+                    for n in range(h):
+                        if any(result[m, n] == diff_val):
+                            result[m, n, 0] = 0
+                            result[m, n, 1] = diff_val
+                            result[m, n, 2] = 0
+                axarr[2, i].imshow(normalize_image(result + randomly_generated[0] * 255))
+            else:
+                axarr[2, i].imshow(normalize_image(generated * 255))
         plt.show()
 
 
