@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 class BatchGenerator:
-    def __init__(self, image_dir, batch_size=64, n_batches=1,
+    def __init__(self, image_dir, batch_size=64, n_batches=3,
                  skip_background=False, use_MNIST=False, input_size=224):
         self.batch_size = batch_size
         self.n_batches = n_batches
@@ -66,9 +66,10 @@ class BatchGenerator:
         self.loaded_images = []
         while loaded < k:
             image = random.choice(self.image_names)
-            image = resize(np.array(Image.open(image)), (im_size, im_size))
+            image = np.array(Image.open(image)) / 255
             if self.skip_background:
                 if image.mean() > 0.9:
                     continue
+            image = resize(image, (im_size, im_size))
             self.loaded_images.append(image)
             loaded += 1
