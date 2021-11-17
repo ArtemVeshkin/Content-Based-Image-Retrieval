@@ -15,7 +15,7 @@ def fit_VAE(cfg):
 
     hidden_dims = cfg.hidden_dims if len(cfg.hidden_dims) > 0 else None
     vae = VAE(cfg.input_size, cfg.in_channels,
-              cfg.lattent_dims, hidden_dims)
+              cfg.lattent_dims, hidden_dims, cfg.n_conv_layers)
     vae.move_to_device(device)
 
     print_train_info(cfg)
@@ -43,7 +43,8 @@ def fit_VAE(cfg):
         loss = vae.loss_function(*vae.forward(batch), **{'M_N': cfg.KLD_weight,
                                                          'recons_loss': cfg.recons_loss,
                                                          'var_weight': cfg.var_weight})
-        sample_from_batch = vae.sample_from_image(batch)
+        # sample_from_batch = vae.sample_from_image(batch)
+        sample_from_batch = vae.generate(batch)
         mse = F.mse_loss(batch, sample_from_batch).item()
         print(f"Step {i}: loss = {loss['loss']:0.6f} | "
               f"Reconstruction part = {loss['Reconstruction_Loss']:0.6f} | "
@@ -66,15 +67,15 @@ def fit_VAE(cfg):
             for h in range(axarr.shape[1]):
                 axarr[w, h].axis('off')
 
-        batch = batch_generator.get_batch()
-        batch = torch.FloatTensor(batch)
-        # sample_from_batch = vae.sample_from_image(batch)
-        sample_from_batch = vae.generate(batch)
-
         randomly_generated = []
-        for i in range(min(cfg.n_samples, cfg.batch_size)):
-            sample = sample_from_batch[i].detach().numpy()
-            image = batch[i].detach().numpy()
+        for i in range(cfg.n_samples):
+            batch = batch_generator.get_batch()
+            batch = torch.FloatTensor(batch)
+            # sample_from_batch = vae.sample_from_image(batch)
+            sample_from_batch = vae.generate(batch)
+
+            sample = sample_from_batch[0].detach().numpy()
+            image = batch[0].detach().numpy()
             image = np.moveaxis(image, 0, -1)
             sample = np.moveaxis(sample, 0, -1)
             axarr[0, i].imshow(normalize_image(image * 255))
@@ -86,7 +87,7 @@ def fit_VAE(cfg):
             generated = vae.sample(1, device).detach().numpy()[0]
             generated = np.moveaxis(generated, 0, -1)
             randomly_generated.append(generated)
-            if i == min(cfg.n_samples, cfg.batch_size) - 1:
+            if i == cfg.n_samples - 1:
                 diff = (randomly_generated[0] - randomly_generated[1]) > 0.01
                 result = np.zeros(diff.shape, dtype='uint8')
                 diff_val = 100
@@ -102,7 +103,13 @@ def fit_VAE(cfg):
                 axarr[2, i].set_title(f"Diff between generated 1 and 2")
             else:
                 axarr[2, i].imshow(normalize_image(generated * 255))
-        name = f"{cfg.max_steps}_steps_{cfg.hidden_dims}_conv_{cfg.input_size}_size"
+        name = f"{cfg.recons_loss}_loss_" \
+               f"{cfg.max_steps}_steps_" \
+               f"{cfg.hidden_dims}_conv_" \
+               f"{cfg.n_conv_layers}_layers_" \
+               f"{cfg.input_size}_size_" \
+               f"{cfg.lr}_lr_" \
+               f"{cfg.batch_size}_batch_size"
         f.suptitle(name)
         plt.savefig(to_absolute_path(f"./eval_results/runs/{name}.jpg"))
         plt.show()

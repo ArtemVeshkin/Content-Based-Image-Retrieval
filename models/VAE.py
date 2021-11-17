@@ -16,6 +16,7 @@ class VAE:
                  in_channels: int,
                  latent_dim: int,
                  hidden_dims: List = None,
+                 n_conv_layers: int = 1,
                  **kwargs) -> None:
         self.latent_dim = latent_dim
         self.input_size = input_size
@@ -28,12 +29,22 @@ class VAE:
 
         # Build Encoder
         for h_dim in hidden_dims:
+            conv_seq = [nn.Conv2d(h_dim, out_channels=h_dim,
+                                  kernel_size=3, stride=1, padding=1),
+                        nn.BatchNorm2d(h_dim),
+                        nn.LeakyReLU()]
+            additional_layers = []
+            for _ in range(n_conv_layers - 1):
+                for elem in conv_seq:
+                    additional_layers.append(elem)
             modules.append(
                 nn.Sequential(
                     nn.Conv2d(in_channels, out_channels=h_dim,
                               kernel_size=3, stride=2, padding=1),
                     nn.BatchNorm2d(h_dim),
-                    nn.LeakyReLU())
+                    nn.LeakyReLU(),
+                    *additional_layers
+                )
             )
             in_channels = h_dim
 
@@ -50,6 +61,14 @@ class VAE:
         hidden_dims.reverse()
 
         for i in range(len(hidden_dims) - 1):
+            conv_seq = [nn.Conv2d(h_dim, out_channels=h_dim,
+                                  kernel_size=3, stride=1, padding=1),
+                        nn.BatchNorm2d(h_dim),
+                        nn.LeakyReLU()]
+            additional_layers = []
+            for _ in range(n_conv_layers - 1):
+                for elem in conv_seq:
+                    additional_layers.append(elem)
             modules.append(
                 nn.Sequential(
                     nn.ConvTranspose2d(hidden_dims[i],
@@ -59,7 +78,12 @@ class VAE:
                                        padding=1,
                                        output_padding=1),
                     nn.BatchNorm2d(hidden_dims[i + 1]),
-                    nn.LeakyReLU())
+                    nn.LeakyReLU(),
+                    nn.Conv2d(hidden_dims[i + 1], out_channels=hidden_dims[i + 1],
+                              kernel_size=3, stride=1, padding=1),
+                    nn.BatchNorm2d(hidden_dims[i + 1]),
+                    nn.LeakyReLU()
+                )
             )
 
         self.decoder = nn.Sequential(*modules)
@@ -208,6 +232,8 @@ class VAE:
             recons_loss = torch.max(torch.mean(torch.abs(recons - input), dim=(1, 2, 3)))
         elif recons_loss_type == 'ssim':
             recons_loss = -ssim(input, recons)
+        elif recons_loss_type == 'ce':
+            recons_loss = -torch.mean(input * torch.log(recons) + (1 - input) * torch.log(1 - recons))
         else:
             raise ValueError(f"Unknown recons loss type: {recons_loss_type}")
 
