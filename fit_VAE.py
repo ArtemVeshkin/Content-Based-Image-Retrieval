@@ -27,14 +27,16 @@ def fit_VAE(cfg):
                                      skip_background=cfg.skip_background,
                                      use_MNIST=cfg.use_MNIST, input_size=cfg.input_size)
     params = vae.get_params()
-    optimizer = torch.optim.Adam(params=params, lr=cfg.lr, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(params=params, lr=cfg.lr,
+                                 weight_decay=cfg.weight_decay
+                                 )
 
     if cfg.load_checkpoint:
         load_dict = vae.load(to_absolute_path(cfg.load_path))
         optimizer.load_state_dict(load_dict['optimizer'])
         print(f"Loaded checkpoint from {to_absolute_path(cfg.load_path)}\n")
 
-    for i in range(cfg.max_steps):
+    for i in range(cfg.max_steps + 1):
         batch = batch_generator.get_batch()
         batch = torch.FloatTensor(batch)
         batch = batch.to(device)
@@ -59,10 +61,15 @@ def fit_VAE(cfg):
 
     if cfg.sample_after_training:
         f, axarr = plt.subplots(3, cfg.n_samples)
+        f.set_size_inches(14, 10)
+        for w in range(axarr.shape[0]):
+            for h in range(axarr.shape[1]):
+                axarr[w, h].axis('off')
+
         batch = batch_generator.get_batch()
         batch = torch.FloatTensor(batch)
-        sample_from_batch = vae.sample_from_image(batch)
-        # sample_from_batch = vae.generate(batch)
+        # sample_from_batch = vae.sample_from_image(batch)
+        sample_from_batch = vae.generate(batch)
 
         randomly_generated = []
         for i in range(min(cfg.n_samples, cfg.batch_size)):
@@ -71,8 +78,9 @@ def fit_VAE(cfg):
             image = np.moveaxis(image, 0, -1)
             sample = np.moveaxis(sample, 0, -1)
             axarr[0, i].imshow(normalize_image(image * 255))
+            axarr[0, i].set_title(f"mean = {image.mean():0.3f}, var = {image.var():0.3f}")
             axarr[1, i].imshow(normalize_image(sample * 255))
-            axarr[1, i].set_xlabel(f"MSE = {((sample - image)**2).mean():0.4f}, "
+            axarr[1, i].set_title(f"MSE = {((sample - image) ** 2).mean():0.4f}, "
                                    f"MAE = {(np.abs(sample - image)).mean():0.4f}")
 
             generated = vae.sample(1, device).detach().numpy()[0]
@@ -91,8 +99,12 @@ def fit_VAE(cfg):
                             result[m, n, 1] = diff_val
                             result[m, n, 2] = 0
                 axarr[2, i].imshow(normalize_image(result + randomly_generated[0] * 255))
+                axarr[2, i].set_title(f"Diff between generated 1 and 2")
             else:
                 axarr[2, i].imshow(normalize_image(generated * 255))
+        name = f"{cfg.max_steps}_steps_{cfg.hidden_dims}_conv_{cfg.input_size}_size"
+        f.suptitle(name)
+        plt.savefig(to_absolute_path(f"./eval_results/runs/{name}.jpg"))
         plt.show()
 
 
