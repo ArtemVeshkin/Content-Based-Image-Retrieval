@@ -19,7 +19,9 @@ def fit_VAE(cfg):
     vae.move_to_device(device)
 
     print_train_info(cfg)
-    # vae.summary()
+
+    if not torch.cuda.is_available():
+        vae.summary()
 
     batch_generator = BatchGenerator(cfg.image_dir, batch_size=cfg.batch_size,
                                      skip_background=cfg.skip_background,
