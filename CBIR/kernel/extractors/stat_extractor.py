@@ -3,7 +3,7 @@ from skimage.color import rgb2gray
 from skimage.feature import greycomatrix, greycoprops
 from scipy.stats import skew, kurtosis, entropy
 import numpy as np
-from kernel.utils import normalize_image
+from CBIR.kernel.utils import normalize_image
 
 
 class StatExtractor(BaseFeatureExtractor):

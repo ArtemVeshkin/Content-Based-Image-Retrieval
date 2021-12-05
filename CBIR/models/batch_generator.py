@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 class BatchGenerator:
-    def __init__(self, image_dir, batch_size=64, n_batches=3,
+    def __init__(self, image_dir, batch_size=64, n_batches=1,
                  skip_background=False, use_MNIST=False, input_size=224):
         self.batch_size = batch_size
         self.n_batches = n_batches

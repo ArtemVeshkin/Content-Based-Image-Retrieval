@@ -1,11 +1,11 @@
 import torch
-from models import VAE
-from models import BatchGenerator
+from CBIR.models import VAE
+from CBIR.models import BatchGenerator
 from hydra.utils import to_absolute_path
 import matplotlib.pyplot as plt
 import numpy as np
 from torch.nn import functional as F
-from kernel.utils import normalize_image
+from CBIR.kernel.utils import normalize_image
 from skimage.transform import resize
 
 
@@ -71,11 +71,12 @@ def fit_VAE(cfg):
         for i in range(cfg.n_samples):
             batch = batch_generator.get_batch()
             batch = torch.FloatTensor(batch)
+            batch = batch.to(device)
             # sample_from_batch = vae.sample_from_image(batch)
             sample_from_batch = vae.generate(batch)
 
-            sample = sample_from_batch[0].detach().numpy()
-            image = batch[0].detach().numpy()
+            sample = sample_from_batch[0].cpu().detach().numpy()
+            image = batch[0].cpu().detach().numpy()
             image = np.moveaxis(image, 0, -1)
             sample = np.moveaxis(sample, 0, -1)
             axarr[0, i].imshow(normalize_image(image * 255))
@@ -84,7 +85,7 @@ def fit_VAE(cfg):
             axarr[1, i].set_title(f"MSE = {((sample - image) ** 2).mean():0.4f}, "
                                    f"MAE = {(np.abs(sample - image)).mean():0.4f}")
 
-            generated = vae.sample(1, device).detach().numpy()[0]
+            generated = vae.sample(1, device).cpu().detach().numpy()[0]
             generated = np.moveaxis(generated, 0, -1)
             randomly_generated.append(generated)
             if i == cfg.n_samples - 1:

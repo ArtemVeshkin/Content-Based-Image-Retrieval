@@ -2,57 +2,124 @@ mode: eval
 feature_extractors:
   stat:
     type: stat
-    args: []
+    args: [ ]
     n_features: 12
   conv:
     type: conv
-    args: ['./models/conv_v1.h5']
+    args: [ './CBIR/models/conv_v1.h5' ]
     n_features: 64
+  VAE:
+    type: VAE
+    nn_config: background_lattent_256
+    args: ${feature_extractors.VAE.VAE_args.${feature_extractors.VAE.nn_config}}
+    n_features: 256
+    VAE_args:
+      big_lattent_1024: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_[64,128,256,256,512]_n_conv_2_input_224_latent_1024',
+        # model_params
+        [
+            224, # input_size
+            3, #in_channels
+            1024, #latent_dims
+            [ 64,128,256,256,512 ], # hidden_dims
+            2 # n_conv_layers
+        ]
+      ]
+      small_lattent_1024: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_[32,32,64,64,128]_n_conv_1_input_224_latent_1024',
+        # model_params
+        [
+            224, # input_size
+            3, #in_channels
+            1024, #latent_dims
+            [ 32,32,64,64,128 ] # hidden_dims
+        ]
+      ]
+      background_lattent_256: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_back_[32,32,64,64,128]_n_conv_1_input_224_latent_256',
+        # model_params
+        [
+            224, # input_size
+            3, #in_channels
+            256, #latent_dims
+            [ 32,32,64,64,128 ] # hidden_dims
+        ]
+      ]
+
 binary_features_serialization:
   path: ./temp/
 eval:
   data_path: ./data/eval/patches-wsi-224-val-z2/
   classes: [
-            {name: AT, n_queries: 10},
-            {name: BG, n_queries: 10},
-            {name: LP, n_queries: 10},
-            {name: MM, n_queries: 10},
-            {name: TUM, n_queries: 10}
+    { name: AT, n_queries: 10 },
+    { name: BG, n_queries: 10 },
+    { name: LP, n_queries: 10 },
+    { name: MM, n_queries: 10 },
+    { name: TUM, n_queries: 10 }
   ]
-  feature_extractor_type: conv
+  feature_extractor_type: VAE
   feature_extractor: ${feature_extractors.${eval.feature_extractor_type}}
   binary_features_serialization: ${binary_features_serialization}
   tile_size: 112
   save_results: False
   top_n: 10
-  LSH_k_bits: 32
+  LSH_k_bits: 16
 data_generation:
-  level: 0 # Levels are numbered from 0 (the highest resolution) to level_count - 1
+  level: 1 # Levels are numbered from 0 (the highest resolution) to level_count - 1
   image_dir: ./data/WSS2/
   output_dir: ./data/VAE_data/train/
-  skip_images: ['6.svs',
-                '8.svs']
-  n_images: 1000
-  tile_size: [224, 224]
+  skip_images: [ '6.svs',
+                 '8.svs' ]
+  n_images: 100
+  tile_size: [ 224, 224 ]
 fit_VAE:
   use_MNIST: True
-  skip_background: True
+  skip_background: False
   load_checkpoint: False
-  load_path: ./models/VAE_checkpoint
+  load_path: ./CBIR/models/VAE_checkpoint
   save_every_steps: 100
-  save_path: ./models/VAE_checkpoint
+  save_path: ./CBIR/models/VAE_checkpoint
   image_dir: ./data/VAE_data/train/
-  input_size: 64
+  input_size: 32
   in_channels: 3
   lattent_dims: 64
-  hidden_dims: [16,32,64,128,256]
-  n_conv_layers: 2
-  recons_loss: mae
-  KLD_weight: 1
+  hidden_dims: [ 64,64,64 ]
+  n_conv_layers: 1
+  recons_loss: ssim
+  KLD_weight: 0.05
   var_weight: 0
-  batch_size: 1
-  lr: 0.00001
-  weight_decay: 0.0001
-  max_steps: 20000
+  batch_size: 64
+  lr: 0.00005
+  weight_decay: 0.0
+  max_steps: 2000
   sample_after_training: True
   n_samples: 4
+extractor_visualization:
+  visualization_type: class_distances
+  feature_extractor_type: VAE
+  feature_extractor: ${feature_extractors.${extractor_visualization.feature_extractor_type}}
+  clusters:
+    n_plots: [2, 4] # (w, h)
+    image_dirs: [
+        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/AT/, name: AT},
+        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/BG/, name: BG},
+        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/LP/, name: LP},
+        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/MM/, name: MM},
+        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/TUM/, name: TUM}
+    ]
+    n_tiles: 100
+  class_distances:
+    image_dirs: [
+      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/AT/, name: AT },
+      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/BG/, name: BG },
+      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/LP/, name: LP },
+      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/MM/, name: MM },
+      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/TUM/, name: TUM }
+    ]
+    n_candidates: 100
+    n_queries: 100
+    metric: mse
+

@@ -1,4 +1,4 @@
-from kernel import DataBase
+from CBIR.kernel import DataBase
 from hydra.utils import to_absolute_path
 import numpy as np
 
@@ -24,10 +24,13 @@ def evaluate(cfg):
         for image in query_images[dataset]:
             normalized_map = 0
             search_result = database.search(image, cfg.top_n)
-            for k, candidate in enumerate(search_result, start=1):
-                if candidate['dataset_name'] == dataset:
-                    normalized_map += 1 / k
-            normalized_map /= map_norm
+            if len(search_result) > 0:
+                for k, candidate in enumerate(search_result, start=1):
+                    if candidate['dataset_name'] == dataset:
+                        normalized_map += 1 / k
+                normalized_map /= map_norm
+            else:
+                normalized_map = 0
             print(f"Normalized MAP@{cfg.top_n} for {image} = {normalized_map:0.6f}")
             map_metrics[dataset].append(normalized_map)
     print()

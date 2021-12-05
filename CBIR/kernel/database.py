@@ -1,5 +1,5 @@
-from kernel.utils import LSH, normalize_image, d_near
-from kernel.extractors import EXTRACTORS
+from CBIR.kernel.utils import LSH, normalize_image, d_near
+from CBIR.kernel.extractors import EXTRACTORS
 
 from tqdm import tqdm
 
@@ -125,7 +125,7 @@ class DataBase:
         c2_candidates = np.array(c2_candidates)
         if c2_candidates.shape[0] == 0:
             print("No similar fragments in database:(")
-            return
+            return np.array([])
         print(f"{c2_candidates.shape[0]} candidates found:")
         for dataset in dataset_candidates_count.keys():
             print(f"{dataset_candidates_count[dataset]} in {dataset}")

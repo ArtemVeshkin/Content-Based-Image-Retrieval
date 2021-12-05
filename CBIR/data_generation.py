@@ -28,8 +28,8 @@ def data_generation(cfg):
 def generate_tile(wsi_list, level, tile_size):
     wsi = random.choice(wsi_list)
     location = (
-        random.randint(0, wsi.dimensions[0] - tile_size[0]),
-        random.randint(0, wsi.dimensions[1] - tile_size[1])
+        random.randint(0, (wsi.dimensions[0] - tile_size[0]) // (level + 1)),
+        random.randint(0, (wsi.dimensions[1] - tile_size[1]) // (level + 1))
     )
     tile = wsi.read_region(location, level, tile_size)
     return tile
