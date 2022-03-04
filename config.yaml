@@ -10,10 +10,22 @@ feature_extractors:
     n_features: 64
   VAE:
     type: VAE
-    nn_config: background_lattent_256
+    nn_config: local
     args: ${feature_extractors.VAE.VAE_args.${feature_extractors.VAE.nn_config}}
-    n_features: 256
+    n_features: 64
     VAE_args:
+      local: [
+        # model_path
+          '/home/artem/dev/CBIR/CBIR/models/VAE_checkpoint',
+        # model_params
+        [
+            192, # input_size
+            3, #in_channels
+            64, #latent_dims
+            [ 16,32,64,64,128,128 ], # hidden_dims
+            1 # n_conv_layers
+        ]
+      ]
       big_lattent_1024: [
         # model_path
           './CBIR/models/Checkpoints/VAE_[64,128,256,256,512]_n_conv_2_input_224_latent_1024',
@@ -48,7 +60,84 @@ feature_extractors:
             [ 32,32,64,64,128 ] # hidden_dims
         ]
       ]
-
+      background_lattent_64: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_level_1_back_[32,32,64,64,128]_n_conv_1_input_224_latent_64',
+        # model_params
+        [
+            224, # input_size
+            3, #in_channels
+            64, #latent_dims
+            [ 32,32,64,64,128 ] # hidden_dims
+        ]
+      ]
+      lattent_64: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_level_1_[16,32,64,64,128,128]_n_conv_1_input_192_latent_64',
+        # model_params
+        [
+            192, # input_size
+            3, #in_channels
+            64, #latent_dims
+            [ 16,32,64,64,128,128 ] # hidden_dims
+        ]
+      ]
+      lattent_48: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_level_1_[16,32,64,64,128,128]_n_conv_1_input_192_latent_48',
+        # model_params
+        [
+            192, # input_size
+            3, #in_channels
+            48, #latent_dims
+            [ 16,32,64,64,128,128 ] # hidden_dims
+        ]
+      ]
+      big_lattent_32: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_level_1_[64,128,256,256,512]_n_conv_2_input_224_latent_32',
+        # model_params
+        [
+            224, # input_size
+            3, #in_channels
+            32, #latent_dims
+            [64,128,256,256,512], # hidden_dims
+            2 # n_conv_layers
+        ]
+      ]
+      lattent_32: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_level_1_[16,32,64,64,128]_n_conv_1_input_224_latent_32',
+        # model_params
+        [
+            224, # input_size
+            3, #in_channels
+            32, #latent_dims
+            [ 16,32,64,64,128 ] # hidden_dims
+        ]
+      ]
+      small_lattent_16: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_level_1_[8,16,32,32,64]_n_conv_1_input_224_latent_16',
+        # model_params
+        [
+            224, # input_size
+            3, #in_channels
+            16, #latent_dims
+            [ 8,16,32,32,64 ] # hidden_dims
+        ]
+      ]
+      lattent_16: [
+        # model_path
+          './CBIR/models/Checkpoints/VAE_level_1_[16,32,32,64,64]_n_conv_1_input_224_latent_16',
+        # model_params
+        [
+            224, # input_size
+            3, #in_channels
+            16, #latent_dims
+            [ 16,32,32,64,64 ] # hidden_dims
+        ]
+      ]
 binary_features_serialization:
   path: ./temp/
 eval:
@@ -76,50 +165,67 @@ data_generation:
   n_images: 100
   tile_size: [ 224, 224 ]
 fit_VAE:
-  use_MNIST: True
-  skip_background: False
+  use_MNIST: False
+  skip_background: True
   load_checkpoint: False
   load_path: ./CBIR/models/VAE_checkpoint
   save_every_steps: 100
   save_path: ./CBIR/models/VAE_checkpoint
-  image_dir: ./data/VAE_data/train/
-  input_size: 32
+  image_dir: [
+      /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/AT/,
+#      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/BG/, name: BG },
+      /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/LP/,
+      /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/MM/,
+      /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/TUM/,
+    ]
+  input_size: 192
   in_channels: 3
   lattent_dims: 64
-  hidden_dims: [ 64,64,64 ]
+  hidden_dims: [ 16,32,64,64,128,128 ]
   n_conv_layers: 1
-  recons_loss: ssim
-  KLD_weight: 0.05
+  recons_loss: ce
+  KLD_weight: 0.00001
   var_weight: 0
-  batch_size: 64
+  batch_size: 16
   lr: 0.00005
   weight_decay: 0.0
   max_steps: 2000
   sample_after_training: True
   n_samples: 4
 extractor_visualization:
-  visualization_type: class_distances
+  visualization_type: knn_distance
   feature_extractor_type: VAE
   feature_extractor: ${feature_extractors.${extractor_visualization.feature_extractor_type}}
-  clusters:
-    n_plots: [2, 4] # (w, h)
-    image_dirs: [
-        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/AT/, name: AT},
-        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/BG/, name: BG},
-        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/LP/, name: LP},
-        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/MM/, name: MM},
-        {path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/TUM/, name: TUM}
-    ]
-    n_tiles: 100
-  class_distances:
-    image_dirs: [
+  image_dirs: [
       { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/AT/, name: AT },
-      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/BG/, name: BG },
+#      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/BG/, name: BG },
       { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/LP/, name: LP },
       { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/MM/, name: MM },
       { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/TUM/, name: TUM }
     ]
+  clusters:
+    n_plots: [ 2, 4 ] # (w, h)
+    image_dirs: ${extractor_visualization.image_dirs}
+    n_tiles: 150
+  class_distances:
+    image_dirs: ${extractor_visualization.image_dirs}
+    n_queries: 10
     n_candidates: 100
+    metric: mse
+  knn_distance:
+    image_dirs: ${extractor_visualization.image_dirs}
+    k: 10
+    n_candidates: 10
     n_queries: 100
     metric: mse
+  transformation:
+    image_dirs: ${extractor_visualization.image_dirs}
+    scale: 0.5
+    source: AT
+    target: LP
+    steps: 3
+    gif_path: transform.gif
+    gif_len: 7000
+    pre_frames: 20
+    post_frames: 20
 

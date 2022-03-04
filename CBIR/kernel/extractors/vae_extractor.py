@@ -24,3 +24,9 @@ class VAEExtractor(BaseFeatureExtractor):
         mu, log_var = self.model.encode(tile)
         features = self.model.reparameterize(mu, log_var).cpu().detach()
         return np.array(features).flatten()
+
+    def generate_by_features(self, features):
+        features = torch.FloatTensor(features).to(self.device)
+        generated = np.array(self.model.decode(features).cpu().detach())
+        generated = np.moveaxis(generated, 1, 3)
+        return generated

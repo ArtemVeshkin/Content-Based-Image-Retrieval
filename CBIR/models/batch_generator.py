@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 class BatchGenerator:
-    def __init__(self, image_dir, batch_size=64, n_batches=1,
+    def __init__(self, image_dirs, batch_size=64, n_batches=1,
                  skip_background=False, use_MNIST=False, input_size=224):
         self.batch_size = batch_size
         self.n_batches = n_batches
@@ -18,15 +18,20 @@ class BatchGenerator:
         self.MNIST_data = None
         self.input_size = input_size
 
-        image_dir = to_absolute_path(image_dir)
-        files = os.listdir(image_dir)
-        image_names = np.array(
-            list(filter(lambda file: file.endswith('.jpg') or
-                                     file.endswith('.png') or
-                                     file.endswith('.bmp'), files)))
-        all_images = np.vectorize(lambda img: f"{image_dir}/{img}")(image_names)
-        all_images.sort()
-        self.image_names = all_images
+        self.image_names = []
+        if isinstance(image_dirs, str):
+            image_dirs = [image_dirs]
+        for image_dir in image_dirs:
+            image_dir = to_absolute_path(image_dir)
+            files = os.listdir(image_dir)
+            image_names = np.array(
+                list(filter(lambda file: file.endswith('.jpg') or
+                                         file.endswith('.png') or
+                                         file.endswith('.bmp'), files)))
+            all_images = np.vectorize(lambda img: f"{image_dir}/{img}")(image_names)
+            all_images.sort()
+            for image in all_images:
+                self.image_names.append(image)
 
         self.loaded_images = []
 

@@ -89,7 +89,7 @@ def fit_VAE(cfg):
             generated = np.moveaxis(generated, 0, -1)
             randomly_generated.append(generated)
             if i == cfg.n_samples - 1:
-                diff = (randomly_generated[0] - randomly_generated[1]) > 0.01
+                diff = np.abs(randomly_generated[0] - randomly_generated[1]) > 0.01
                 result = np.zeros(diff.shape, dtype='uint8')
                 diff_val = 100
                 result[diff] = diff_val
