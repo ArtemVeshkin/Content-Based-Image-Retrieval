@@ -192,6 +192,23 @@ fit_VAE:
   max_steps: 2000
   sample_after_training: True
   n_samples: 4
+fit_scalenet:
+  train_path: /home/artem/dev/Content-Based-Image-Retrieval/WSI_scale_data/train
+  eval_path: /home/artem/dev/Content-Based-Image-Retrieval/WSI_scale_data/eval
+  summarywriter_logdir: tensorboard_logs
+  log_every_steps: 10
+  input_size: 224
+  grayscale_input: False
+  conv_hidden_dims: [16,32,64,128,256]
+  conv_out_size: 2
+  fc_hidden_dims: [256,64,16]
+  eval_only: False
+  batch_size: 64
+  n_batches: 1
+  training_steps: 10000
+  eval_every_steps: 1000
+  lr: 1e-3
+  weight_decay: 0
 extractor_visualization:
   visualization_type: knn_distance
   feature_extractor_type: VAE

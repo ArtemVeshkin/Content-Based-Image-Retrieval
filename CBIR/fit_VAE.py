@@ -83,7 +83,7 @@ def fit_VAE(cfg):
             axarr[0, i].set_title(f"mean = {image.mean():0.3f}, var = {image.var():0.3f}")
             axarr[1, i].imshow(normalize_image(sample * 255))
             axarr[1, i].set_title(f"MSE = {((sample - image) ** 2).mean():0.4f}, "
-                                   f"MAE = {(np.abs(sample - image)).mean():0.4f}")
+                                  f"MAE = {(np.abs(sample - image)).mean():0.4f}")
 
             generated = vae.sample(1, device).cpu().detach().numpy()[0]
             generated = np.moveaxis(generated, 0, -1)

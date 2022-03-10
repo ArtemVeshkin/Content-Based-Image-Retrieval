@@ -10,13 +10,14 @@ import matplotlib.pyplot as plt
 
 class BatchGenerator:
     def __init__(self, image_dirs, batch_size=64, n_batches=1,
-                 skip_background=False, use_MNIST=False, input_size=224):
+                 skip_background=False, use_MNIST=False, input_size=224, give_image_names=False):
         self.batch_size = batch_size
         self.n_batches = n_batches
         self.skip_background = skip_background
         self.use_MNIST = use_MNIST
         self.MNIST_data = None
         self.input_size = input_size
+        self.give_image_names = give_image_names
 
         self.image_names = []
         if isinstance(image_dirs, str):
@@ -58,9 +59,16 @@ class BatchGenerator:
         if len(self.loaded_images) < self.batch_size:
             self._load_images()
 
-        batch = np.array([self.loaded_images.pop() for _ in range(self.batch_size)])
+        batch = [self.loaded_images.pop() for _ in range(self.batch_size)]
+        image_names = None
+        if self.give_image_names:
+            batch, image_names = zip(*batch)
+            image_names = np.array(image_names)
+        batch = np.array(batch)
         # [B x W x H x C] -> [B x C x W x H]
         batch = np.rollaxis(batch, 3, 1)
+        if self.give_image_names:
+            return batch, image_names
         return batch
 
     def _load_images(self):
@@ -70,11 +78,17 @@ class BatchGenerator:
         im_size = self.input_size
         self.loaded_images = []
         while loaded < k:
-            image = random.choice(self.image_names)
-            image = np.array(Image.open(image)) / 255
+            image_name = random.choice(self.image_names)
+            image = np.array(Image.open(image_name)) / 255
+
             if self.skip_background:
+                print('test')
                 if image.mean() > 0.9:
                     continue
-            image = resize(image, (im_size, im_size))
+            if image.shape[:2] != (im_size, im_size):
+                image = resize(image, (im_size, im_size))
+
+            if self.give_image_names:
+                image = (image, image_name)
             self.loaded_images.append(image)
             loaded += 1
