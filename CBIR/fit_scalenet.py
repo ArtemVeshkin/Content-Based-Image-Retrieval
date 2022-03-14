@@ -37,7 +37,7 @@ def fit_scalenet(cfg):
         train_accuracy += accuracy(pred, y_train).item()
         if step % cfg.log_every_steps == 0:
             log(writer=writer, step=step, loss=train_loss, accuracy=train_accuracy,
-                averaging=cfg.log_every_steps)
+                averaging=cfg.log_every_steps if step != 0 else 1)
             train_loss = 0.
             train_accuracy = 0.
 
@@ -46,18 +46,13 @@ def log(writer, step, loss, accuracy, averaging=1):
     loss /= averaging
     accuracy /= averaging
     print(f'Step: {step} | Loss: {loss:0.4f} | Accuracy: {accuracy:0.4f}')
-    writer.add_scalars('Training loss',
-                       {'training_loss': loss},
-                       step)
-    writer.add_scalars('Training accuracy',
-                       {'training_accuracy': accuracy},
-                       step)
+    writer.add_scalar('training_loss', loss, step)
+    writer.add_scalar('training_accuracy', accuracy, step)
     writer.flush()
 
 
 def accuracy(pred, target):
-    preds = torch.argmax(pred, dim=1)
-    return (preds == target).float().mean()
+    return (torch.round(pred) == target).float().mean()
 
 
 def get_data_generators(cfg):
