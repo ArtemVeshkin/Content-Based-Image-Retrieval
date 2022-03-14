@@ -61,3 +61,16 @@ class ScaleNet(nn.Module):
 
     def summary(self):
         summary(self, (self.in_channels, self.input_size, self.input_size))
+
+    def save(self, path, optimizer):
+        torch.save({
+            'conv_stack': self.conv_stack.state_dict(),
+            'fc_stack': self.fc_stack.state_dict(),
+            'optimizer': optimizer.state_dict(),
+        }, path)
+
+    def load(self, path):
+        checkpoint = torch.load(path, map_location=torch.device('cpu'))
+        self.conv_stack.load_state_dict(checkpoint['conv_stack'])
+        self.fc_stack.load_state_dict(checkpoint['fc_stack'])
+        return {'optimizer': checkpoint['optimizer']}
