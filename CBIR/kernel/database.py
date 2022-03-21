@@ -6,9 +6,11 @@ from tqdm import tqdm
 from random import shuffle
 import numpy as np
 import pandas as pd
+import torch
 from PIL import Image
 import os
 from hydra.utils import to_absolute_path
+from typing import List
 
 
 class DataBase:
@@ -31,6 +33,9 @@ class DataBase:
         self.images[dataset_name] = all_images[skip_and_return:]
         return all_images[:skip_and_return]
 
+    def load_svs(self, path: str, scales: List[int]):
+        raise NotImplemented
+
     def get_image(self, dataset_name: str, image_idx: int):
         return np.array(Image.open(self.images[dataset_name][image_idx]))
 
@@ -46,7 +51,7 @@ class DataBase:
             for i in range(width):
                 for j in range(height):
                     tile = image[i * self.__tile_size:(i + 1) * self.__tile_size,
-                           j * self.__tile_size:(j + 1) * self.__tile_size, :]
+                                 j * self.__tile_size:(j + 1) * self.__tile_size, :]
                     extracted_features = self.extractor.extract_features_for_tile(tile)
                     binary_features[i, j] = self.__hash.get_signature(extracted_features)
             self.binary_features[dataset_name][n] = binary_features
@@ -91,9 +96,9 @@ class DataBase:
         self.__hash.n_features = df['Hash_n_features'].values[0]
         self.__hash.seed = df['Hash_seed'].values[0]
 
-    def search(self, filename: str, top_n: int):
-        print(f"\nSearching top {top_n} similar patches for {filename}")
-        image = np.array(Image.open(filename))
+    def search(self, image: np.ndarray, top_n: int, log=True):
+        if log:
+            print(f"\nSearching top {top_n} similar patches")
         width, height = image.shape[0] // self.__tile_size, image.shape[1] // self.__tile_size
         # Query image binarization
         query_binary_features = np.zeros((width, height))
@@ -168,9 +173,12 @@ class DataBase:
                     candidate['distance'] = distance
                     results.append(candidate)
                     if self.cfg.save_results:
+                        results_dir_name = to_absolute_path('Results')
+                        if not os.path.exists(results_dir_name):
+                            os.makedirs(results_dir_name)
                         Image.fromarray(normalize_image(img[x * self.__tile_size: (x + width) * self.__tile_size,
                                                         y * self.__tile_size:(y + height) * self.__tile_size])) \
-                            .save(to_absolute_path(f"Results/top_{n}.png"))
+                            .save(to_absolute_path(f"{results_dir_name}/top_{n}.png"))
                     n += 1
                     if n > top_n:
                         break

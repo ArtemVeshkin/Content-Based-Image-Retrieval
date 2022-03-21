@@ -4,7 +4,10 @@ import hydra
 
 @hydra.main(config_path=".", config_name="config")
 def main(cfg: DictConfig) -> None:
-    if cfg.mode == 'eval':
+    if cfg.mode == 'CBIR_test':
+        from CBIR.CBIR_test import CBIR_test
+        CBIR_test(cfg.CBIR_test)
+    elif cfg.mode == 'eval':
         from CBIR.evaluate import evaluate
         evaluate(cfg.eval)
     elif cfg.mode == 'data_generation':

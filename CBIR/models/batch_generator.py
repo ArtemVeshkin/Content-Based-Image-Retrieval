@@ -82,7 +82,6 @@ class BatchGenerator:
             image = np.array(Image.open(image_name)) / 255
 
             if self.skip_background:
-                print('test')
                 if image.mean() > 0.9:
                     continue
             if image.shape[:2] != (im_size, im_size):

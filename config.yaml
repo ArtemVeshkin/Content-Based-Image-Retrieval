@@ -156,6 +156,14 @@ eval:
   save_results: False
   top_n: 10
   LSH_k_bits: 16
+CBIR_test:
+  feature_extractor_type: stat
+  feature_extractor: ${feature_extractors.${CBIR_test.feature_extractor_type}}
+  binary_features_serialization: ${binary_features_serialization}
+  tile_size: 112
+  save_results: True
+  top_n: 10
+  LSH_k_bits: 16
 data_generation:
   level: 1 # Levels are numbered from 0 (the highest resolution) to level_count - 1
   image_dir: ./data/WSS2/
@@ -197,7 +205,7 @@ fit_scalenet:
   eval_path: /home/artem/dev/Content-Based-Image-Retrieval/WSI_scale_data/eval
   summarywriter_logdir: tensorboard_logs
   checkpoint_path: /home/artem/dev/Content-Based-Image-Retrieval/Checkpoints/ScaleNet/checkpoint
-  load_from_checkpoint: False
+  load_from_checkpoint: True
   save_every_steps: 1000
   log_every_steps: 10
   input_size: 224
@@ -206,11 +214,11 @@ fit_scalenet:
   conv_out_size: 2
   fc_hidden_dims: [128,32]
   eval_only: False
-  batch_size: 64
+  batch_size: 128
   n_batches: 1
   training_steps: 200000
   eval_every_steps: 500
-  eval_num_steps: 100
+  eval_num_steps: 50
   lr: 1e-4
   weight_decay: 0
 extractor_visualization:

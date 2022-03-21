@@ -12,15 +12,8 @@ from tqdm import tqdm
 
 def fit_scalenet(cfg):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    experiment_name = f'{cfg.conv_hidden_dims}_' \
-                      f'{cfg.fc_hidden_dims}_' \
-                      f'conv_out_size{cfg.conv_out_size}_' \
-                      f'lr{cfg.lr}'
-    writer = SummaryWriter(to_absolute_path(f'{cfg.summarywriter_logdir}/{experiment_name}'))
+    writer = get_tensorboard_writer(cfg)
 
-    layout = {'Accuracy': {'train vs eval': ['Multiline', ['train/accuracy', 'eval/accuracy']]},
-              'Loss': {'train vs eval': ['Multiline', ['train/loss', 'eval/loss']]}}
-    writer.add_custom_scalars(layout)
     # train and validation data
     train_data, eval_data = get_data_generators(cfg)
 
@@ -28,7 +21,7 @@ def fit_scalenet(cfg):
     model, optimizer = get_model(cfg)
     if cfg.load_from_checkpoint:
         load_dict = model.load(to_absolute_path(cfg.checkpoint_path))
-        optimizer.load_state_dict(load_dict['optimizer'])
+        # optimizer.load_state_dict(load_dict['optimizer'])
         print(f'Loaded checkpoint from {to_absolute_path(cfg.checkpoint_path)}')
     model.to(device)
     model.summary()
@@ -62,7 +55,7 @@ def fit_scalenet(cfg):
 
 def eval_scalenet(cfg, step, model, eval_data, device, writer):
     print(f'EVALUATING MODEL ON {cfg.eval_num_steps * cfg.batch_size} IMAGES')
-    with torch.no_grad():
+    with torch.inference_mode():
         eval_loss = 0.
         eval_accuracy = 0.
         for _ in tqdm(range(cfg.eval_num_steps)):
@@ -81,6 +74,19 @@ def log(writer, step, loss, accuracy, averaging=1, mode='train'):
     writer.add_scalar(f'{mode}/loss', loss, step)
     writer.add_scalar(f'{mode}/accuracy', accuracy, step)
     writer.flush()
+
+
+def get_tensorboard_writer(cfg):
+    experiment_name = f'{cfg.conv_hidden_dims}_' \
+                      f'{cfg.fc_hidden_dims}_' \
+                      f'conv_out_size{cfg.conv_out_size}_' \
+                      f'lr{cfg.lr}'
+    writer = SummaryWriter(to_absolute_path(f'{cfg.summarywriter_logdir}/{experiment_name}'))
+
+    layout = {'Accuracy': {'train vs eval': ['Multiline', ['train/accuracy', 'eval/accuracy']]},
+              'Loss': {'train vs eval': ['Multiline', ['train/loss', 'eval/loss']]}}
+    writer.add_custom_scalars(layout)
+    return writer
 
 
 def accuracy(pred, target):
