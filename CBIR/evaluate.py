@@ -13,7 +13,7 @@ def evaluate(cfg):
         dataset_name = dataset.name
         query_images[dataset_name] = database.load_images(to_absolute_path(cfg.data_path + dataset_name),
                                                           dataset_name, dataset.n_queries)
-        database.extract_binary_features(dataset.name)
+        database.extract_features(dataset.name)
 
     print("=====FEATURES EXTRACTED=====")
 
