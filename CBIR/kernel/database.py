@@ -1,7 +1,8 @@
-from CBIR.kernel.utils import LSH, normalize_image, d_near
+from CBIR.kernel.utils import LSH, normalize_image
 from CBIR.kernel.extractors import EXTRACTORS
 from CBIR.models import ScaleNet
-from .search import *
+from .search import (get_image_features, get_candidates, get_distances,
+                     detect_scales, FILTERS, DISTANCES)
 
 from tqdm import tqdm
 
@@ -140,7 +141,7 @@ class DataBase:
         self.__hash.seed = df['Hash_seed'].values[0]
 
     def search(self, image: np.ndarray, top_n: int, detect_scale=False, log=True):
-        if log: print(f"\nSearching top {top_n} similar patches")
+        if log: print(f"\nSearching for top {top_n} similar patches")
         width, height = image.shape[0] // self.__tile_size, image.shape[1] // self.__tile_size
 
         # Query image features
@@ -202,6 +203,7 @@ class DataBase:
                     used_tiles[dataset_name][scale][img_idx][x:x + width, y:y + height] = 1
                     candidate['distance'] = distance
                     candidate['coordinates'] = (x * self.__tile_size, y * self.__tile_size)
+                    candidate['image_name'] = self.images[dataset_name][scale][img_idx]
                     results.append(candidate)
                     if self.cfg.save_results:
                         img = self.get_image(dataset_name=dataset_name, scale=scale, image_idx=img_idx)
