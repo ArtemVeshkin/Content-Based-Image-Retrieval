@@ -13,5 +13,5 @@ def CBIR_test(cfg):
 
     database.deserialize(to_absolute_path(cfg.features_serialization.path))
     query = np.array(Image.open(to_absolute_path(cfg.query)))
-    search_result = database.search(query, top_n=10, detect_scale=True, log=True)
+    search_result = database.search(query, top_n=10, detect_scale=False, log=True)
     print(search_result)

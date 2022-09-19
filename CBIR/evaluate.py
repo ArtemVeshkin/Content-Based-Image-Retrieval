@@ -14,6 +14,8 @@ def evaluate(cfg):
         query_images[dataset_name] = database.load_images(to_absolute_path(cfg.data_path + dataset_name),
                                                           dataset_name, dataset.n_queries)
         database.extract_features(dataset.name)
+    database.serialize(to_absolute_path('CBIR_serialized'))
+    # database.deserialize(to_absolute_path('CBIR_serialized'))
 
     print("=====FEATURES EXTRACTED=====")
 
@@ -34,6 +36,7 @@ def evaluate(cfg):
             else:
                 normalized_map = 0
             print(f"Normalized MAP@{cfg.top_n} for {image_name} = {normalized_map:0.6f}")
+            print(search_result)
             map_metrics[dataset].append(normalized_map)
     print()
     for dataset in map_metrics.keys():

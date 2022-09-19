@@ -10,7 +10,7 @@ import numpy as np
 Tensor = TypeVar('Tensor')
 
 
-class VAE:
+class AutoEncoder:
     def __init__(self,
                  input_size: int,
                  in_channels: int,
@@ -50,8 +50,7 @@ class VAE:
 
         self.encoder = nn.Sequential(*modules)
         self.encoder_out_size = int(input_size / 2 ** len(hidden_dims))
-        self.fc_mu = nn.Linear(hidden_dims[-1] * self.encoder_out_size ** 2, latent_dim)
-        self.fc_var = nn.Linear(hidden_dims[-1] * self.encoder_out_size ** 2, latent_dim)
+        self.fc_hidden = nn.Linear(hidden_dims[-1] * self.encoder_out_size ** 2, latent_dim)
 
         # Build Decoder
         modules = []
@@ -105,8 +104,7 @@ class VAE:
         torch.save({
             'encoder': self.encoder.state_dict(),
             'decoder': self.decoder.state_dict(),
-            'fc_mu': self.fc_mu.state_dict(),
-            'fc_var': self.fc_var.state_dict(),
+            'fc_hidden': self.fc_hidden.state_dict(),
             'decoder_input': self.decoder_input.state_dict(),
             'final_layer': self.final_layer.state_dict(),
             'optimizer': optimizer.state_dict()
@@ -116,8 +114,7 @@ class VAE:
         checkpoint = torch.load(path, map_location=torch.device('cpu'))
         self.encoder.load_state_dict(checkpoint['encoder'])
         self.decoder.load_state_dict(checkpoint['decoder'])
-        self.fc_mu.load_state_dict(checkpoint['fc_mu'])
-        self.fc_var.load_state_dict(checkpoint['fc_var'])
+        self.fc_hidden.load_state_dict(checkpoint['fc_hidden'])
         self.decoder_input.load_state_dict(checkpoint['decoder_input'])
         self.final_layer.load_state_dict(checkpoint['final_layer'])
 
@@ -126,16 +123,14 @@ class VAE:
     def move_to_device(self, device):
         self.encoder.to(device)
         self.decoder.to(device)
-        self.fc_mu.to(device)
-        self.fc_var.to(device)
+        self.fc_hidden.to(device)
         self.decoder_input.to(device)
         self.final_layer.to(device)
 
     def get_params(self):
         params = [*self.encoder.parameters(),
                   *self.decoder.parameters(),
-                  *self.fc_mu.parameters(),
-                  *self.fc_var.parameters(),
+                  *self.fc_hidden.parameters(),
                   *self.decoder_input.parameters(),
                   *self.final_layer.parameters()]
         return params
@@ -147,9 +142,8 @@ class VAE:
             tensor = tensor.to(torch.device("cuda"))
         print("Encoder:")
         summary(self.encoder, tensor.shape[1:])
-        mu, log_var = self.encode(tensor)
-        z = self.reparameterize(mu, log_var)
-        tensor = self.decoder_input(z)
+        tensor = self.encode(tensor)
+        tensor = self.decoder_input(tensor)
         tensor = tensor.view(-1, self.encoder_last_hidden_dim,
                              self.encoder_out_size, self.encoder_out_size)
         print("\nDecoder:")
@@ -167,13 +161,9 @@ class VAE:
         """
         result = self.encoder(input)
         result = torch.flatten(result, start_dim=1)
+        result = self.fc_hidden(result)
 
-        # Split the result into mu and var components
-        # of the latent Gaussian distribution
-        mu = self.fc_mu(result)
-        log_var = self.fc_var(result)
-
-        return [mu, log_var]
+        return result
 
     def decode(self, z: Tensor) -> Tensor:
         """
@@ -189,40 +179,16 @@ class VAE:
         result = self.final_layer(result)
         return result
 
-    def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
-        """
-        Reparameterization trick to sample from N(mu, var) from
-        N(0,1).
-        :param mu: (Tensor) Mean of the latent Gaussian [B x D]
-        :param logvar: (Tensor) Standard deviation of the latent Gaussian [B x D]
-        :return: (Tensor) [B x D]
-        """
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        return eps * std + mu
-
     def forward(self, input: Tensor, **kwargs) -> List[Tensor]:
-        mu, log_var = self.encode(input)
-        z = self.reparameterize(mu, log_var)
-        return [self.decode(z), input, mu, log_var]
+        encoded = self.encode(input)
+        return [self.decode(encoded), input]
 
     def loss_function(self,
                       *args,
                       **kwargs) -> dict:
-        """
-        Computes the VAE loss function.
-        KL(N(\mu, \sigma), N(0, 1)) = \log \frac{1}{\sigma} + \frac{\sigma^2 + \mu^2}{2} - \frac{1}{2}
-        :param args:
-        :param kwargs:
-        :return:
-        """
         recons = args[0]
         input = args[1]
-        mu = args[2]
-        log_var = args[3]
 
-        kld_weight = kwargs['M_N']  # Account for the minibatch samples from the dataset
-        var_weight = kwargs['var_weight']
         recons_loss_type = kwargs['recons_loss']
         if recons_loss_type == 'mse':
             recons_loss = F.mse_loss(recons, input)
@@ -236,13 +202,8 @@ class VAE:
             recons_loss = -torch.mean(input * torch.log(recons) + (1 - input) * torch.log(1 - recons))
         else:
             raise ValueError(f"Unknown recons loss type: {recons_loss_type}")
-
-        kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
-
-        var = recons.var()
-
-        loss = recons_loss + kld_weight * kld_loss - var_weight * var
-        return {'loss': loss, 'Reconstruction_Loss': recons_loss, 'KLD': kld_loss, 'var': var}
+        loss = recons_loss
+        return {'loss': loss, 'Reconstruction_Loss': recons_loss, 'KLD': 0, 'var': 0}
 
     def sample(self,
                num_samples: int,

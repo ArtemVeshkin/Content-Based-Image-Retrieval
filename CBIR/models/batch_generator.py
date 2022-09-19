@@ -28,7 +28,8 @@ class BatchGenerator:
             image_names = np.array(
                 list(filter(lambda file: file.endswith('.jpg') or
                                          file.endswith('.png') or
-                                         file.endswith('.bmp'), files)))
+                                         file.endswith('.bmp') or
+                                         file.endswith('.tif'), files)))
             all_images = np.vectorize(lambda img: f"{image_dir}/{img}")(image_names)
             all_images.sort()
             for image in all_images:
@@ -85,7 +86,10 @@ class BatchGenerator:
                 if image.mean() > 0.9:
                     continue
             if image.shape[:2] != (im_size, im_size):
-                image = resize(image, (im_size, im_size))
+                if im_size > image.shape[0] or im_size > image.shape[1]:
+                    image = resize(image, (im_size, im_size))
+                else:
+                    image = image[:im_size, :im_size, :]
 
             if self.give_image_names:
                 image = (image, image_name)

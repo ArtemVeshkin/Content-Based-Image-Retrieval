@@ -11,7 +11,7 @@ import random
 def get_image_features(image: np.ndarray, tile_size: int, extractor: BaseFeatureExtractor, binarizator: LSH = None,
                        log=False):
     width, height = (np.array(image.shape) // tile_size)[:2]
-    image_binary_features = np.zeros((width, height))
+    image_binary_features = np.empty((width, height), dtype=object)
     with tqdm(total=width * height, disable=not log) as pbar:
         for i in range(width):
             for j in range(height):
@@ -24,6 +24,7 @@ def get_image_features(image: np.ndarray, tile_size: int, extractor: BaseFeature
 
 
 FILTERS = {
+    'no filter': lambda q, db: True,
     'c2': lambda q, db: np.any(np.in1d(q, db))
 }
 
@@ -61,6 +62,8 @@ def get_candidates(query_features, database_features, filter_fn, query_scales=No
 
 
 DISTANCES = {
+    'mse': lambda q, db: ((q - db) ** 2).mean()[0],
+    'mae': lambda q, db: (np.abs(q - db)).mean()[0],
     'c2_d_near': lambda q, db: d_near(q, db) + d_near(db, q),
     'c2_d_ave': lambda q, db: d_ave(q, db) + d_ave(db, q),
 }

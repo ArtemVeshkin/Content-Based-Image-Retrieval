@@ -12,7 +12,7 @@ class LSH:
     def __init__(self, k_bits: int, n_features: int):
         self.k_bits = k_bits
         self.n_features = n_features
-        self.seed = np.random.randn(self.k_bits, n_features)
+        self.seed = np.random.randn(self.k_bits, self.n_features)
 
     # LSH signature generation using random projection
     def get_signature(self, features):
@@ -26,6 +26,17 @@ class LSH:
             if np.dot(p, features) >= 0:
                 res |= 1
         return res
+
+
+class Ident:
+    def __init__(self):
+        self.k_bits = 0
+        self.n_features = 0
+        self.seed = 0
+
+    @staticmethod
+    def get_signature(features):
+        return features
 
 
 # get number of '1's in binary
@@ -64,4 +75,3 @@ def d_near(q, p):
     for p_elem in p:
         res += np.vectorize(lambda x: nnz(np.bitwise_xor(p_elem, x)))(q).min()
     return res / p.shape[0]
-

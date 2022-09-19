@@ -1,4 +1,4 @@
-from CBIR.kernel.utils import LSH, normalize_image
+from CBIR.kernel.utils import LSH, normalize_image, Ident
 from CBIR.kernel.extractors import EXTRACTORS
 from CBIR.models import ScaleNet
 from .search import (get_image_features, get_candidates, get_distances,
@@ -40,12 +40,15 @@ class DataBase:
         self.scalenet.load(cfg.scalenet.checkpoint_path)
 
         self.__tile_size = cfg.tile_size
-        self.__hash = LSH(cfg.LSH_k_bits, cfg.feature_extractor.n_features)
+        self.__hash = LSH(cfg.LSH_k_bits, cfg.feature_extractor.n_features) if cfg.binarization else Ident()
 
     def load_images(self, directory: str, dataset_name: str, skip_and_return: int = 0, scale: int = 0):
         files = os.listdir(directory)
         image_names = np.array(
-            list(filter(lambda x: x.endswith('.png') or x.endswith('.jpg') or x.endswith('.bmp'), files)))
+            list(filter(lambda x: x.endswith('.png') or
+                                  x.endswith('.jpg') or
+                                  x.endswith('.bmp') or
+                                  x.endswith('.tif'), files)))
         all_images = np.vectorize(lambda x: directory + '/' + x)(image_names)
         all_images.sort()
         if dataset_name not in self.images:
@@ -127,6 +130,7 @@ class DataBase:
         df = df.transpose()
 
         df.to_pickle(filename)
+        print(f"Saved to {filename}")
 
     def deserialize(self, filename: str):
         df = pd.read_pickle(filename)
@@ -161,7 +165,7 @@ class DataBase:
             query_scales = query_scales_dict['query_scales']
 
         # Candidates for query image
-        candidates_result = get_candidates(query_features, self.features, FILTERS['c2'], query_scales)
+        candidates_result = get_candidates(query_features, self.features, FILTERS[self.cfg.filter], query_scales)
         candidates = candidates_result['candidates']
         dataset_candidates_count = candidates_result['dataset_candidates_count']
 
@@ -174,7 +178,7 @@ class DataBase:
 
         # Distances to query image
         distances_dict = get_distances(database_features=self.features, query_features=query_features,
-                                       candidates=candidates, distance_fn=DISTANCES['c2_d_near'], log=log)
+                                       candidates=candidates, distance_fn=DISTANCES[self.cfg.distance], log=log)
 
         for distance in distances_dict.keys():
             random.shuffle(distances_dict[distance])
