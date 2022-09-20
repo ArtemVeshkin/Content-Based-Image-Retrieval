@@ -9,5 +9,6 @@ defaults:
   - fit_VAE: fit_VAE
   - data_generation: data_generation
   - feature_extractors: feature_extractors
+  - eval: eval
   - scalenet: scalenet
   - _self_
