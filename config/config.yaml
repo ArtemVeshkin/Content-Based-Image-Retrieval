@@ -1,0 +1,13 @@
+mode: eval
+features_serialization:
+  path: /home/artem/dev/Content-Based-Image-Retrieval/CBIR_serialized
+
+defaults:
+  - CBIR_test: CBIR_test
+  - extractor_visualization: extractor_visualization
+  - fit_scalenet: fit_scalenet
+  - fit_VAE: fit_VAE
+  - data_generation: data_generation
+  - feature_extractors: feature_extractors
+  - scalenet: scalenet
+  - _self_

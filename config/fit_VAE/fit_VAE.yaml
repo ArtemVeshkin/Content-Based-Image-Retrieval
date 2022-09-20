@@ -1,0 +1,40 @@
+use_AE: True
+use_MNIST: False
+skip_background: True
+load_checkpoint: False
+load_path: /home/artem/dev/Content-Based-Image-Retrieval/Checkpoints/VAE_checkpoint
+save_every_steps: 100
+save_path: /home/artem/dev/Content-Based-Image-Retrieval/Checkpoints/VAE_checkpoint
+image_dir: /home/artem/dev/Content-Based-Image-Retrieval/VAE_data/train
+#  image_dir: [
+#    '/home/artem/data/PATH-DT-MSU-WSI/patches-wsi-224-val-z2/AT/',
+#    '/home/artem/data/PATH-DT-MSU-WSI/patches-wsi-224-val-z2/LP/',
+#    '/home/artem/data/PATH-DT-MSU-WSI/patches-wsi-224-val-z2/MM/',
+#    '/home/artem/data/PATH-DT-MSU-WSI/patches-wsi-224-val-z2/TUM/',
+#  ]
+#  image_dir: [
+#    '/home/artem/data/NCT-CRC-HE-100K/ADI/',
+#    '/home/artem/data/NCT-CRC-HE-100K/BACK/',
+#    '/home/artem/data/NCT-CRC-HE-100K/DEB/',
+#    '/home/artem/data/NCT-CRC-HE-100K/LYM/',
+#    '/home/artem/data/NCT-CRC-HE-100K/MUC/',
+#    '/home/artem/data/NCT-CRC-HE-100K/MUS/',
+#    '/home/artem/data/NCT-CRC-HE-100K/NORM/',
+#    '/home/artem/data/NCT-CRC-HE-100K/STR/',
+#    '/home/artem/data/NCT-CRC-HE-100K/TUM/',
+#  ]
+summarywriter_logdir: tensorboard_logs
+input_size: 192
+in_channels: 3
+lattent_dims: 32
+hidden_dims: [ 16, 32, 64, 128, 256, 512 ]
+n_conv_layers: 2
+recons_loss: mse
+KLD_weight: 0.0000001
+var_weight: 0
+batch_size: 8
+lr: 0.00005
+weight_decay: 0
+max_steps: 1000000
+sample_after_training: True
+n_samples: 4

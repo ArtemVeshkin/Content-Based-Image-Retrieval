@@ -1,0 +1,6 @@
+checkpoint_path: /home/artem/dev/Content-Based-Image-Retrieval/CBIR/models/ScaleNet_best_[16,32,64,128,256]_[128,32]
+input_size: 224
+grayscale_input: False
+conv_hidden_dims: [ 16,32,64,128,256 ]
+conv_out_size: 2
+fc_hidden_dims: [ 128,32 ]

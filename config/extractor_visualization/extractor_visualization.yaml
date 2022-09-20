@@ -1,0 +1,35 @@
+visualization_type: knn_distance
+feature_extractor_type: VAE
+feature_extractor: ${feature_extractors.${extractor_visualization.feature_extractor_type}}
+image_dirs: [
+    { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/AT/, name: AT },
+#      { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/BG/, name: BG },
+    { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/LP/, name: LP },
+    { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/MM/, name: MM },
+    { path: /home/artem/dev/CBIR/data/eval/patches-wsi-224-val-z2/TUM/, name: TUM }
+  ]
+clusters:
+  n_plots: [ 2, 4 ] # (w, h)
+  image_dirs: ${extractor_visualization.image_dirs}
+  n_tiles: 150
+class_distances:
+  image_dirs: ${extractor_visualization.image_dirs}
+  n_queries: 10
+  n_candidates: 100
+  metric: mse
+knn_distance:
+  image_dirs: ${extractor_visualization.image_dirs}
+  k: 10
+  n_candidates: 10
+  n_queries: 100
+  metric: mse
+transformation:
+  image_dirs: ${extractor_visualization.image_dirs}
+  scale: 0.5
+  source: AT
+  target: LP
+  steps: 3
+  gif_path: transform.gif
+  gif_len: 7000
+  pre_frames: 20
+  post_frames: 20

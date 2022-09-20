@@ -1,0 +1,16 @@
+feature_extractor_type: stat
+feature_extractor: ${feature_extractors.${CBIR_test.feature_extractor_type}}
+features_serialization: ${features_serialization}
+scalenet: ${scalenet}
+scale_detection:
+  test_wsi: /home/artem/data/PATH-DT-MSU-WSI/WSS2/01.svs
+  scales: [5, 10, 15, 20, 25, 30, 35, 40]
+  n_samples: 20
+tile_size: 192
+save_results: True
+top_n: 10
+binarization: True
+filter: 'c2' # 'c2'/'no filter'
+distance: 'c2_d_near' # 'mse'/'c2_d_near'/'c2_d_ave'
+LSH_k_bits: 16
+query: /home/artem/data/PATH-DT-MSU-WSI/patches-wsi-224-val-z2/TUM/000010.jpg

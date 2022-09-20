@@ -1,0 +1,28 @@
+stat:
+  type: stat
+  args: [ ]
+  n_features: 12
+conv:
+  type: conv
+  args: [ './CBIR/models/conv_v1.h5' ]
+  n_features: 64
+VAE:
+  type: VAE
+  nn_config: local
+  args: ${feature_extractors.VAE.VAE_args.${feature_extractors.VAE.nn_config}}
+  n_features: 32
+  VAE_args:
+    local: [
+      # model_path
+#           '/home/artem/dev/Content-Based-Image-Retrieval/CBIR/models/VAE_checkpoint',
+#            '/home/artem/dev/Content-Based-Image-Retrieval/Checkpoints/VAE/AE_checkpoint_[16,32,64,128,256,512]_256_192_2',
+          '/home/artem/dev/Content-Based-Image-Retrieval/Checkpoints/VAE_checkpoint',
+      # model_params
+      [
+          192, # input_size
+          3, #in_channels
+          32, #latent_dims
+          [ 16, 32, 64, 128, 256, 512 ], # hidden_dims
+          2 # n_conv_layers
+      ]
+    ]

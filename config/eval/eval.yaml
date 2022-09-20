@@ -1,0 +1,31 @@
+data_path: /home/artem/data/PATH-DT-MSU-WSI/patches-wsi-224-val-z2-balanced/
+classes: [
+  { name: AT, n_queries: 10 },
+#    { name: BG, n_queries: 10 },
+  { name: LP, n_queries: 10 },
+  { name: MM, n_queries: 10 },
+  { name: TUM, n_queries: 10 }
+]
+#  data_path: /home/artem/data/NCT-CRC-HE-100K/
+#  classes: [
+#    { name: ADI, n_queries: 10 },
+#    { name: BACK, n_queries: 10 },
+#    { name: DEB, n_queries: 10 },
+#    { name: LYM, n_queries: 10 },
+#    { name: MUC, n_queries: 10 },
+#    { name: MUS, n_queries: 10 },
+#    { name: NORM, n_queries: 10 },
+#    { name: STR, n_queries: 10 },
+#    { name: TUM, n_queries: 10 },
+#  ]
+feature_extractor_type: stat
+feature_extractor: ${feature_extractors.${eval.feature_extractor_type}}
+binarization: True
+filter: 'c2' # 'c2'/'no filter'
+distance: 'c2_d_near' # 'mse'/'c2_d_near'/'c2_d_ave'
+features_serialization: ${features_serialization}
+tile_size: 192
+save_results: False
+top_n: 10
+LSH_k_bits: 16
+scalenet: ${scalenet}

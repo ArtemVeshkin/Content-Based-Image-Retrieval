@@ -1,0 +1,7 @@
+level: 1 # Levels are numbered from 0 (the highest resolution) to level_count - 1
+image_dir: /home/artem/data/PATH-DT-MSU-WSI/WSS2/
+output_dir: /home/artem/dev/Content-Based-Image-Retrieval/VAE_data/train/
+skip_images: [ '6.svs',
+               '8.svs' ]
+n_images: 100000
+tile_size: [ 224, 224 ]
