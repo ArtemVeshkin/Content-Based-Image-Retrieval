@@ -11,4 +11,5 @@ defaults:
   - feature_extractors: feature_extractors
   - eval: eval
   - scalenet: scalenet
+  - fit_contrastive_extractor: fit_contrastive_extractor
   - _self_

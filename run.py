@@ -19,6 +19,9 @@ def main(cfg: DictConfig) -> None:
     elif cfg.mode == 'fit_scalenet':
         from CBIR.scenarios.fit_scalenet import fit_scalenet
         fit_scalenet(cfg.fit_scalenet)
+    elif cfg.mode == 'fit_contrastive_extractor':
+        from CBIR.scenarios.fit_contrastive_extractor import fit_contrastive_extractor
+        fit_contrastive_extractor(cfg.fit_contrastive_extractor)
     elif cfg.mode == 'extractor_visualization':
         from CBIR.scenarios.extractor_visualization import extractor_visualization
         extractor_visualization(cfg.extractor_visualization)
