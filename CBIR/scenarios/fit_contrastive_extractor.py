@@ -43,9 +43,11 @@ def generate_batch(cfg):
             x.append(tiles)
 
     x = list(map(lambda tile: tile.get(), x))
-    x = torch.stack(x)
+
+    x1 = torch.stack(list(map(lambda v: v[0], x)))
+    x2 = torch.stack(list(map(lambda v: v[1], x)))
     y = torch.Tensor(y)
-    return x, y
+    return (x1, x2), y
 
 
 def gen_same_tiles(cfg):
@@ -54,9 +56,9 @@ def gen_same_tiles(cfg):
     tile1 = apply_augmentation(cfg.augmentation, tile)
     tile2 = apply_augmentation(cfg.augmentation, tile)
 
-    concatenated = np.concatenate((tile1, tile2), axis=-1)
-    concatenated = torch.Tensor(concatenated)
-    return concatenated
+    tile1 = torch.Tensor(tile1)
+    tile2 = torch.Tensor(tile2)
+    return tile1, tile2
 
 
 def gen_different_tiles(cfg):
@@ -69,12 +71,9 @@ def gen_different_tiles(cfg):
     else:
         tile2, meta = sample_tile(cfg)
 
-    tile1 = apply_augmentation(cfg.augmentation, tile1)
-    tile2 = apply_augmentation(cfg.augmentation, tile2)
-
-    concatenated = np.concatenate((tile1, tile2), axis=-1)
-    concatenated = torch.Tensor(concatenated)
-    return concatenated
+    tile1 = torch.Tensor(tile1)
+    tile2 = torch.Tensor(tile2)
+    return tile1, tile2
 
 
 def sample_tile(cfg):
