@@ -1,4 +1,4 @@
-batch_size: 10
+batch_size: 32
 wsi_paths: [
   '/home/artem/data/PATH-DT-MSU-WSI/WSS1/01.svs',
   '/home/artem/data/PATH-DT-MSU-WSI/WSS1/02.svs',
@@ -10,6 +10,9 @@ wsi_scale: 40
 tile_size: 224
 level: 1 # [0, 1, 2, ...], where 0 means max scaling
 filter_background: True
+n_steps: 1000000
+log_every_steps: 1
+summarywriter_logdir: tensorboard_logs
 
 defaults:
   - augmentation: augmentation
