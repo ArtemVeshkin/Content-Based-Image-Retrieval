@@ -9,7 +9,7 @@ import imgaug.augmenters as iaa
 import torch
 from CBIR.models import ContrastiveExtractor
 from torch.optim import Adam
-from torch.nn.functional import binary_cross_entropy
+from torch.nn.functional import binary_cross_entropy, cosine_embedding_loss
 from torch.utils.tensorboard import SummaryWriter
 import gc
 
@@ -24,29 +24,44 @@ def fit_contrastive_extractor(cfg):
 
     model, optimizer = get_model(cfg)
     model = model.to(device)
+    model.summary()
+
+    if cfg.load_from_checkpoint:
+        model.load(to_absolute_path(cfg.checkpoint_path))
+        model.to(device)
+        print(f'Model state loaded from {cfg.checkpoint_path}')
 
     train_loss = 0.
-    train_accuracy = 0.
+    train_metric = 0.
     for step in range(cfg.n_steps):
         x, y = generate_batch(cfg)
         x1, x2, y = x[0].to(device), x[1].to(device), y.to(device)
-        pred = model(x1, x2)
-        loss = binary_cross_entropy(pred, y)
+        out1, out2 = model(x1, x2)
+        # loss = binary_cross_entropy(pred, y)
+        # loss = calc_loss_cos(out1=out1, out2=out2, y=y, cfg=cfg, device=device)
+        loss = calc_euclidean_loss(out1=out1, out2=out2, y=y, cfg=cfg, device=device)
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
 
-        train_loss += loss.item()
-        train_accuracy += accuracy(pred, y).item()
-        if step % cfg.log_every_steps == 0:
-            log(writer=writer, step=step, loss=train_loss, accuracy=train_accuracy,
-                averaging=cfg.log_every_steps if step != 0 else 1, mode='train')
-            train_loss = 0.
-            train_accuracy = 0.
+        with torch.no_grad():
+            train_loss += loss.item()
+            # train_metric += accuracy(pred, y).item()
+            # train_metric += cosine_accuracy(out1, out2, y)
+            train_metric += roc_auc(out1, out2, y, cfg=cfg, device=device)
+            # train_metric += small_values_ratio(cfg=cfg, out1=out1, out2=out2, device=device)
+            if step % cfg.log_every_steps == 0:
+                log(writer=writer, step=step, loss=train_loss, metric=train_metric,
+                    averaging=cfg.log_every_steps if step != 0 else 1, mode='train')
+                train_loss = 0.
+                train_metric = 0.
+
+        if step % cfg.save_every_steps == 0:
+            model.save(to_absolute_path(cfg.checkpoint_path), optimizer)
 
 
 def get_model(cfg):
-    model = ContrastiveExtractor()
+    model = ContrastiveExtractor(embedding_size=cfg.embedding_size)
 
     lr = 1e-3 if 'lr' not in cfg else cfg.lr
     weight_decay = 0 if 'weight_decay' not in cfg else cfg.weight_decay
@@ -57,8 +72,63 @@ def get_model(cfg):
     return model, optimizer
 
 
+def calc_loss_cos(out1, out2, y, cfg, device):
+    ones = torch.ones(cfg.batch_size, cfg.embedding_size).to(device)
+    zeros = torch.zeros(cfg.batch_size, cfg.embedding_size).to(device)
+    out1_small_values_penalty = torch.mean(torch.where(torch.abs(out1) < cfg.values_penalty, ones, zeros))
+    out2_small_values_penalty = torch.mean(torch.where(torch.abs(out2) < cfg.values_penalty, ones, zeros))
+    small_values_penalty = cfg.small_values_penalty_alpha * (10 / cfg.batch_size) * \
+                           (out1_small_values_penalty + out2_small_values_penalty)
+    return cosine_embedding_loss(out1, out2, y, margin=cfg.cos_margin) + small_values_penalty
+
+
+def calc_euclidean_loss(out1, out2, y, cfg, device):
+    # D = torch.sqrt(((out1 - out2) ** 2).sum(dim=1))
+    D = (torch.abs(out1 - out2)).sum(dim=1)
+    loss = y * D + (1 - y) * torch.maximum(torch.Tensor([0]).to(device), cfg.euclidean_loss_margin - D) ** 2
+    # print(loss, D, y)
+    return loss.mean()
+
+
 def accuracy(pred, target):
     return (torch.round(pred) == target).float().mean()
+
+
+def roc_auc(out1, out2, target, cfg, device):
+    from ignite.contrib.metrics import ROC_AUC
+    from ignite.engine import Engine
+
+    def eval_step(engine, batch):
+        return batch
+    print()
+    default_evaluator = Engine(eval_step)
+
+    D = torch.sqrt(((out1 - out2) ** 2).sum(dim=1))
+    roc_auc = ROC_AUC()
+    roc_auc.attach(default_evaluator, 'roc_auc')
+    state = default_evaluator.run([[D, 1 - target]])
+    print()
+    return state.metrics['roc_auc']
+
+
+def cosine_accuracy(embedding1, embedding2, target):
+    # pred = normalize(torch.cosine_similarity(embedding1, embedding2), -1, 1)
+    pred = torch.cosine_similarity(embedding1, embedding2)
+    # target = normalize(target[:, None], -1, 1)
+    target = target[:, None]
+    return accuracy(pred, target).item()
+
+
+def small_values_ratio(cfg, out1, out2, device):
+    ones = torch.ones(cfg.batch_size, cfg.embedding_size).to(device)
+    zeros = torch.zeros(cfg.batch_size, cfg.embedding_size).to(device)
+    out1_small_values_penalty = torch.mean(torch.where(torch.abs(out1) < cfg.values_penalty, ones, zeros))
+    out2_small_values_penalty = torch.mean(torch.where(torch.abs(out2) < cfg.values_penalty, ones, zeros))
+    return ((out1_small_values_penalty + out2_small_values_penalty) / 2).item()
+
+
+def normalize(tensor, min, max):
+    return (tensor + min) / (max - min)
 
 
 def get_tensorboard_writer(cfg):
@@ -66,7 +136,12 @@ def get_tensorboard_writer(cfg):
     #                   f'{cfg.fc_hidden_dims}_' \
     #                   f'conv_out_size{cfg.conv_out_size}_' \
     #                   f'lr{cfg.lr}'
-    experiment_name = 'test'
+    experiment_name = f'lr={cfg.lr}_' \
+                      f'emb_size={cfg.embedding_size}_' \
+                      f'small_abs_' \
+                      f'margin={cfg.euclidean_loss_margin}'
+                      # f'cos_margin={cfg.cos_margin}_'
+
     writer = SummaryWriter(to_absolute_path(f'{cfg.summarywriter_logdir}/{experiment_name}'))
 
     layout = {'Accuracy': {'train vs eval': ['Multiline', ['train/accuracy', 'eval/accuracy']]},
@@ -75,12 +150,12 @@ def get_tensorboard_writer(cfg):
     return writer
 
 
-def log(writer, step, loss, accuracy, averaging=1, mode='train'):
+def log(writer, step, loss, metric, averaging=1, mode='train'):
     loss /= averaging
-    accuracy /= averaging
-    print(f'Step: {step} | Loss: {loss:0.4f} | Accuracy: {accuracy:0.4f}')
+    metric /= averaging
+    print(f'Step: {step} | Loss: {loss:0.4f} | Metric: {metric:0.4f}')
     writer.add_scalar(f'{mode}/loss', loss, step)
-    writer.add_scalar(f'{mode}/accuracy', accuracy, step)
+    writer.add_scalar(f'{mode}/metric', metric, step)
     writer.flush()
 
 
@@ -103,7 +178,7 @@ def generate_batch(cfg):
             tiles = pool.apply_async(gen_same_tiles, [cfg])
             x.append(tiles)
 
-        # different [y = 0]
+        # different [y = -1]
         else:
             y.append(0)
             tiles = pool.apply_async(gen_different_tiles, [cfg])
@@ -113,7 +188,8 @@ def generate_batch(cfg):
 
     x1 = torch.moveaxis(torch.stack(list(map(lambda v: torch.Tensor(v[0]), x))), 3, 1)
     x2 = torch.moveaxis(torch.stack(list(map(lambda v: torch.Tensor(v[1]), x))), 3, 1)
-    y = torch.Tensor(y)[:, None]
+    # y = torch.Tensor(y)[:, None]
+    y = torch.Tensor(y)
     return (x1, x2), y
 
 
