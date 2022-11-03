@@ -26,3 +26,17 @@ VAE:
           2 # n_conv_layers
       ]
     ]
+Contrastive:
+  type: Contrastive
+  args: [
+    # model_path
+    '/home/artem/dev/Content-Based-Image-Retrieval/Checkpoints/ContrastiveExtractor/checkpoint',
+    [
+      224, # input_size
+      [8, 16, 32, 64, 128], # conv_hidden_dims
+      2, # conv_out_size
+      [128], # fc_hidden_dims
+      48 # embedding_size
+    ]
+  ]
+  n_features: 48

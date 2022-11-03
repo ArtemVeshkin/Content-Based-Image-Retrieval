@@ -2,6 +2,7 @@ from CBIR.kernel import DataBase
 from hydra.utils import to_absolute_path
 from PIL import Image
 import numpy as np
+from functools import lru_cache
 
 
 def evaluate(cfg):
@@ -19,15 +20,16 @@ def evaluate(cfg):
 
     print("=====FEATURES EXTRACTED=====")
 
-    map_metrics = {dataset.name: [] for dataset in cfg.classes}
+    metrics = {dataset.name: [] for dataset in cfg.classes}
     map_norm = 0
+    log_search = cfg.log_search
     for k in range(1, cfg.top_n + 1):
         map_norm += 1/k
     for dataset in query_images:
-        for image_name in query_images[dataset]:
+        for image_path in query_images[dataset]:
             normalized_map = 0
-            image = np.array(Image.open(image_name))
-            search_result = database.search(image, cfg.top_n)
+            image = np.array(Image.open(image_path))
+            search_result = database.search(image, cfg.top_n, log=log_search)
             if len(search_result) > 0:
                 for k, candidate in enumerate(search_result, start=1):
                     if candidate['dataset_name'] == dataset:
@@ -35,11 +37,12 @@ def evaluate(cfg):
                 normalized_map /= map_norm
             else:
                 normalized_map = 0
-            print(f"Normalized MAP@{cfg.top_n} for {image_name} = {normalized_map:0.6f}")
-            print(search_result)
-            map_metrics[dataset].append(normalized_map)
+            if log_search: print(f"Normalized MAP@{cfg.top_n} for {image_path} = {normalized_map:0.6f}")
+            if log_search: print(search_result)
+            metrics[dataset].append(normalized_map)
     print()
-    for dataset in map_metrics.keys():
-        print(f"{dataset}: average normalized MAP@{cfg.top_n} = {np.mean(map_metrics[dataset]):0.6f}")
+    for dataset in metrics.keys():
+        print(f"{dataset}: average normalized MAP@{cfg.top_n} = {np.mean(metrics[dataset]):0.6f}")
     print(f"Total average normalized MAP@{cfg.top_n} = "
-          f"{np.mean([np.mean(map_metrics[dataset]) for dataset in map_metrics.keys()]):0.6f}")
+          f"{np.mean([np.mean(metrics[dataset]) for dataset in metrics.keys()]):0.6f}")
+    
