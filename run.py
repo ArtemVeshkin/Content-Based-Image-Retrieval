@@ -25,6 +25,9 @@ def main(cfg: DictConfig) -> None:
     elif cfg.mode == 'extractor_visualization':
         from CBIR.scenarios.extractor_visualization import extractor_visualization
         extractor_visualization(cfg.extractor_visualization)
+    elif cfg.mode == 'crop_sources':
+        from CBIR.scenarios.crop_sources import crop_sources
+        crop_sources(cfg.crop_sources)
     else:
         raise ValueError(f"Unknown mode {cfg.mode}")
 

@@ -61,9 +61,19 @@ def get_candidates(query_features, database_features, filter_fn, query_scales=No
     }
 
 
+def mape_modified(q, db):
+    mape = np.ravel(np.abs((q - db) / q)[q != 0])[0]
+    mape_filtered = mape[mape > 1.]
+    if len(mape_filtered) > 0:
+        return mape_filtered.mean()
+    return mape.mean()
+
+
 DISTANCES = {
     'mse': lambda q, db: ((q - db) ** 2).mean()[0],
     'mae': lambda q, db: (np.abs(q - db)).mean()[0],
+    'mape': lambda q, db: np.abs((q - db) / q)[q != 0].mean()[0],
+    'mape_modified': mape_modified,
     'c2_d_near': lambda q, db: d_near(q, db) + d_near(db, q),
     'c2_d_ave': lambda q, db: d_ave(q, db) + d_ave(db, q),
 }
@@ -83,6 +93,15 @@ def get_distances(database_features, query_features, candidates, distance_fn, lo
 
         db_features = database_features[dataset_name][scale][image_idx]['features'][x:x + width, y:y + height]
         distance = distance_fn(query_features, db_features)
+
+        # import matplotlib.pyplot as plt
+        # q = query_features[0, 0]
+        # db = db_features[0, 0]
+        # dist = np.abs((q - db) / q)[q != 0]
+        # plt.scatter(range(len(q)), dist)
+        # plt.title(mape_modified(q, db))
+        # plt.show()
+
         if distance not in distances_dict:
             distances_dict[distance] = []
         distances_dict[distance].append(candidates[i])

@@ -12,4 +12,5 @@ defaults:
   - eval: eval
   - scalenet: scalenet
   - fit_contrastive_extractor: fit_contrastive_extractor
+  - crop_sources: crop_sources
   - _self_

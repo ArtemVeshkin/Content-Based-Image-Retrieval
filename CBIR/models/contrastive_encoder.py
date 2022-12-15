@@ -9,7 +9,7 @@ Tensor = TypeVar('Tensor')
 
 class ContrastiveExtractor(nn.Module):
     def __init__(self,
-                 input_size: int = 224,
+                 input_size: int = 112,
                  conv_hidden_dims: List = None,
                  conv_out_size: int = 2,
                  fc_hidden_dims: List = None,

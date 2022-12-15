@@ -1,24 +1,62 @@
-batch_size: 64
+batch_size: 8
+#wsi_paths: [
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/01.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/02.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/03.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/04.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/05.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/06.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/07.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/08.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/09.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/10.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/01.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/02.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/03.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/04.svs',
+#  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/05.svs',
+#]
+#wsi_paths: [
+#  '/home/artem/data/CBIR_other_data/MSU/sources/1.jpg',
+#  '/home/artem/data/CBIR_other_data/MSU/sources/2.jpg',
+#  '/home/artem/data/CBIR_other_data/MSU/sources/3.jpg',
+#  '/home/artem/data/CBIR_other_data/MSU/sources/4.jpg',
+#  '/home/artem/data/CBIR_other_data/MSU/sources/5.jpg',
+#  '/home/artem/data/CBIR_other_data/MSU/sources/6.jpg',
+#  '/home/artem/data/CBIR_other_data/MSU/sources/7.jpg',
+#]
 wsi_paths: [
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/01.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/02.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/03.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/04.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/05.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/06.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/07.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/08.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/09.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/10.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/01.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/02.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/03.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/04.svs',
-  '/home/artem/data/PATH-DT-MSU-WSI/WSS2/05.svs',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Achaemenid architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/American craftsman style/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/American Foursquare architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Ancient Egyptian architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Art Deco architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Art Nouveau architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Baroque architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Bauhaus architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Beaux-Arts architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Byzantine architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Chicago school architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Colonial architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Deconstructivism/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Edwardian architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Georgian architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Gothic architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Greek Revival architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/International style/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Novelty architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Palladian architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Postmodern architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Queen Anne architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Romanesque architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Russian Revival architecture/',
+#  '/home/artem/data/CBIR_other_data/arcDataset/Tudor Revival architecture/',
 ]
+wsi_type: 'GDAL' # 'SVS' / 'GDAL'
 wsi_scale: 40
-tile_size: 224
-level: 1 # [0, 1, 2, ...], where 0 means max scaling
+tile_size: 112
+#level: 1 # [0, 1, 2, ...], where 0 means max scaling
+level: 0 # [0, 1, 2, ...], where 0 means max scaling
 filter_background: True
 n_steps: 100000
 log_every_steps: 1
@@ -26,12 +64,15 @@ summarywriter_logdir: tensorboard_logs
 save_every_steps: 100
 checkpoint_path: /home/artem/dev/Content-Based-Image-Retrieval/Checkpoints/ContrastiveExtractor/checkpoint
 cos_margin: -0.2
-embedding_size: 48
+embedding_size: 128
 values_penalty: 0.05
-lr: 0.0005
+lr: 0.0001
+near_target: 1
+conv_hidden_dims: [16, 32, 64, 128, 256, 512]
+fc_hidden_dims: [256]
 load_from_checkpoint: False
 small_values_penalty_alpha: 1.0
-euclidean_loss_margin: 3
+euclidean_loss_margin: 5
 
 defaults:
   - augmentation: augmentation

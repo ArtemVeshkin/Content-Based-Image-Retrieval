@@ -10,6 +10,7 @@ import random
 import numpy as np
 import pandas as pd
 from PIL import Image
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import os
 from hydra.utils import to_absolute_path
 from typing import List
@@ -29,6 +30,9 @@ class DataBase:
         #                       }
         #                  }
         self.features = {}
+        # self.features_scaler = StandardScaler()
+        self.features_scaler = MinMaxScaler()
+        self.use_scaler = False
         self.cfg = cfg
         self.extractor = EXTRACTORS[cfg.feature_extractor.type](*cfg.feature_extractor.args)
 
@@ -40,6 +44,8 @@ class DataBase:
         self.scalenet.load(cfg.scalenet.checkpoint_path)
 
         self.__tile_size = cfg.tile_size
+
+        cfg.feature_extractor.n_features = eval(str(cfg.feature_extractor.n_features))
         self.__hash = LSH(cfg.LSH_k_bits, cfg.feature_extractor.n_features) if cfg.binarization else Ident()
 
     def load_images(self, directory: str, dataset_name: str, skip_and_return: int = 0, scale: int = 0):
@@ -103,6 +109,30 @@ class DataBase:
                     'image_name': image_name,
                 }
 
+    def normalize_features(self):
+        all_features = []
+        for dataset in self.features.values():
+            for scale in dataset.values():
+                for image in scale:
+                    image = image['features']
+                    w, h = image.shape
+                    for i in range(w):
+                        for j in range(h):
+                            all_features.append(image[i][j])
+
+        self.features_scaler.fit(all_features)
+        self.use_scaler = True
+
+        for dataset in self.features.values():
+            for scale in dataset.values():
+                for image in scale:
+                    image = image['features']
+                    w, h = image.shape
+                    for i in range(w):
+                        for j in range(h):
+                            image[i][j] = self.features_scaler.transform(image[i][j].reshape(1, -1))[0]
+
+
     def save_dataset_features(self, dataset_name: str):
         d = {
             'features': self.features[dataset_name]
@@ -151,6 +181,12 @@ class DataBase:
         # Query image features
         query_features = get_image_features(image=image, tile_size=self.__tile_size,
                                             extractor=self.extractor, binarizator=self.__hash)
+
+        if self.use_scaler:
+            w, h = query_features.shape
+            for i in range(w):
+                for j in range(h):
+                    query_features[i][j] = self.features_scaler.transform(query_features[i][j].reshape(1, -1))[0]
 
         # Query image scale detection
         query_scales = None

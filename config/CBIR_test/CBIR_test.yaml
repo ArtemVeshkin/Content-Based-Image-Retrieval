@@ -1,16 +1,59 @@
-feature_extractor_type: stat
+data_path: /home/artem/data/CBIR_other_data/arcDataset/
+classes: [
+  { name: cropped }
+]
+#feature_extractor_type: stat
+feature_extractor_type: Contrastive
+#feature_extractor_type: merged_stat_contrastive
 feature_extractor: ${feature_extractors.${CBIR_test.feature_extractor_type}}
 features_serialization: ${features_serialization}
+tile_size: 112
+save_results: True
+top_n: 10
+binarization: False
+filter: 'no filter' # 'c2'/'no filter'
+distance: 'mse' # 'mae'/'mse'/'mape'/'mape_modified'/'c2_d_near'/'c2_d_ave'
+LSH_k_bits: 16
+query: [
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/235.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/196.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/185.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/74.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/0.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/10.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/20.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/30.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/40.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/50.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/60.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/70.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/80.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/90.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/100.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/110.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/120.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/130.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/140.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/150.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/160.jpg,
+  /home/artem/data/CBIR_other_data/arcDataset/cropped/170.jpg, #
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/180.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/190.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/200.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/210.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/220.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/230.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/240.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/250.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/260.jpg,
+  /home/artem/data/CBIR_other_data/arcDataset/cropped/270.jpg, #
+  /home/artem/data/CBIR_other_data/arcDataset/cropped/280.jpg, #
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/290.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/300.jpg,
+]
+
 scalenet: ${scalenet}
 scale_detection:
   test_wsi: /home/artem/data/PATH-DT-MSU-WSI/WSS2/01.svs
   scales: [5, 10, 15, 20, 25, 30, 35, 40]
   n_samples: 20
-tile_size: 192
-save_results: True
-top_n: 10
-binarization: True
-filter: 'c2' # 'c2'/'no filter'
-distance: 'c2_d_near' # 'mse'/'c2_d_near'/'c2_d_ave'
-LSH_k_bits: 16
-query: /home/artem/data/PATH-DT-MSU-WSI/patches-wsi-224-val-z2/TUM/000010.jpg
