@@ -10,24 +10,24 @@ import slideio
 def CBIR_test(cfg):
     database = DataBase(cfg)
 
-    # for dataset in cfg.classes:
-    #     dataset_name = dataset.name
-    #     database.load_images(to_absolute_path(cfg.data_path + dataset_name), dataset_name)
-    #     database.extract_features(dataset.name)
-    #
-    # database.serialize(to_absolute_path('CBIR_serialized'))
-    # database.normalize_features()
+    for dataset in cfg.classes:
+        dataset_name = dataset.name
+        database.load_images(to_absolute_path(cfg.data_path + dataset_name), dataset_name)
+        database.extract_features(dataset.name)
+
+    database.serialize(to_absolute_path('CBIR_serialized'))
+    database.normalize_features()
 
     # database.load_svs(path=to_absolute_path('/home/artem/data/PATH-DT-MSU-WSI/WSS1/04.svs'), dataset_name='PATH-DT',
     #                   scales=[5, 10, 15, 20, 25, 30, 35, 40])
     # database.extract_features('PATH-DT')
     # database.serialize(to_absolute_path('CBIR_serialized'))
 
-    database.deserialize(to_absolute_path(cfg.features_serialization.path))
-    database.normalize_features()
+    # database.deserialize(to_absolute_path(cfg.features_serialization.path))
+    # database.normalize_features()
 
     for query_path in cfg.query:
-        print(query_path)
+        print('\n', query_path)
         query = np.array(Image.open(to_absolute_path(query_path)))
         search_result = database.search(query, top_n=10, detect_scale=False, log=True)
         print(search_result)
@@ -49,6 +49,6 @@ def CBIR_test(cfg):
             cur_ax = axarr[1 + i // 5, i % 5]
             cur_ax.imshow(Image.open(search_result[i]['image_name']))
             cur_ax.set_title(f'Top {i + 1}'
-                             f'\nSimilarity_score={10e+9*search_result[i]["distance"]:0.4f}')
+                             f'\nSimilarity_score={10e+5*search_result[i]["distance"]:0.4f}')
             cur_ax.axis('off')
         plt.show()

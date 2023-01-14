@@ -1,4 +1,4 @@
-batch_size: 8
+batch_size: 128
 #wsi_paths: [
 #  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/01.svs',
 #  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/02.svs',
@@ -26,31 +26,31 @@ batch_size: 8
 #  '/home/artem/data/CBIR_other_data/MSU/sources/7.jpg',
 #]
 wsi_paths: [
-#  '/home/artem/data/CBIR_other_data/arcDataset/Achaemenid architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/American craftsman style/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/American Foursquare architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Ancient Egyptian architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Art Deco architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Art Nouveau architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Baroque architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Bauhaus architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Beaux-Arts architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Achaemenid architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/American craftsman style/',
+  '/home/artem/data/CBIR_other_data/arcDataset/American Foursquare architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Ancient Egyptian architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Art Deco architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Art Nouveau architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Baroque architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Bauhaus architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Beaux-Arts architecture/',
   '/home/artem/data/CBIR_other_data/arcDataset/Byzantine architecture/',
   '/home/artem/data/CBIR_other_data/arcDataset/Chicago school architecture/',
   '/home/artem/data/CBIR_other_data/arcDataset/Colonial architecture/',
   '/home/artem/data/CBIR_other_data/arcDataset/Deconstructivism/',
   '/home/artem/data/CBIR_other_data/arcDataset/Edwardian architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Georgian architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Gothic architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Greek Revival architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/International style/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Novelty architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Palladian architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Postmodern architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Queen Anne architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Romanesque architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Russian Revival architecture/',
-#  '/home/artem/data/CBIR_other_data/arcDataset/Tudor Revival architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Georgian architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Gothic architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Greek Revival architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/International style/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Novelty architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Palladian architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Postmodern architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Queen Anne architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Romanesque architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Russian Revival architecture/',
+  '/home/artem/data/CBIR_other_data/arcDataset/Tudor Revival architecture/',
 ]
 wsi_type: 'GDAL' # 'SVS' / 'GDAL'
 wsi_scale: 40
@@ -67,7 +67,8 @@ cos_margin: -0.2
 embedding_size: 128
 values_penalty: 0.05
 lr: 0.0001
-near_target: 1
+near_target: 0.5
+use_segmentation: True
 conv_hidden_dims: [16, 32, 64, 128, 256, 512]
 fc_hidden_dims: [256]
 load_from_checkpoint: False

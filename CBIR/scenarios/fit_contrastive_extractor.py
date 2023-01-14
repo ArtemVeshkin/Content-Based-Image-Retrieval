@@ -12,6 +12,7 @@ from CBIR.models import ContrastiveExtractor
 from torch.optim import Adam
 from torch.nn.functional import binary_cross_entropy, cosine_embedding_loss
 from torch.utils.tensorboard import SummaryWriter
+from collections import Counter
 from PIL import Image
 from skimage.segmentation import felzenszwalb, mark_boundaries
 from sklearn.metrics import roc_auc_score
@@ -141,7 +142,8 @@ def get_tensorboard_writer(cfg):
                       f'emb_size={cfg.embedding_size}_' \
                       f'near_target={cfg.near_target}_' \
                       f'conv_hidden_dims={cfg.conv_hidden_dims}_' \
-                      f'margin={cfg.euclidean_loss_margin}'
+                      f'margin={cfg.euclidean_loss_margin}_' \
+                      f'use_segm={cfg.use_segmentation}'
 
     writer = SummaryWriter(to_absolute_path(f'{cfg.summarywriter_logdir}/{experiment_name}'))
 
@@ -230,8 +232,10 @@ def gen_different_tiles(cfg):
     # nearby tile
     # if random.choices([True, False], weights=[0.75, 0.25]):
     if random.choice([True, False]):
-        tile2 = get_nearby_tile(cfg, wsi=meta['wsi'], location=meta['location'])
+        tile2, same_classes = get_nearby_tile(cfg, wsi=meta['wsi'], location=meta['location'])
         target = cfg.near_target
+        if cfg.use_segmentation and same_classes:
+            target = 1
     # random tile
     else:
         tile2, meta = sample_tile(cfg)
@@ -254,8 +258,8 @@ def sample_tile(cfg):
         else:
             h, w = wsi.size[:2]
         location = (
-            random.randint(0, h - tile_size * (2 ** level)),
-            random.randint(0, w - tile_size * (2 ** level))
+            random.randint(tile_size * (2 ** level), h - 2 * tile_size * (2 ** level)),
+            random.randint(tile_size * (2 ** level), w - 2 * tile_size * (2 ** level))
         )
         try:
             if cfg.wsi_type == 'GDAL':
@@ -278,53 +282,68 @@ def sample_tile(cfg):
     }
 
 
+# returns most frequent class label in area
+def get_area_class(area, x_min, x_max, y_min, y_max):
+    area_fragment = area[x_min:x_max, y_min:y_max].ravel()
+    return Counter(area_fragment).most_common(1)[0][0]
+
+
 def get_nearby_tile(cfg, wsi, location):
     generated = False
     tile = None
     tile_size = cfg.tile_size
     level = cfg.level
+    crop_size = tile_size * (2 ** level)
 
-    candidate_area = wsi[max(0, location[0] - tile_size * (2 ** level)):
-                         min(wsi.shape[0], location[0] + 2 * tile_size * (2 ** level)),
-                         max(0, location[1] - tile_size * (2 ** level)):
-                         min(wsi.shape[1], location[1] + 2 * tile_size * (2 ** level)),
-                     :]
-    f, axarr = plt.subplots(1, 3)
-    f.set_size_inches(28, 10)
-    scale, sigma, min_size = 1000, 2, 2000
-    print(candidate_area.shape)
-    axarr[0].imshow(candidate_area)
-    axarr[1].imshow(mark_boundaries(candidate_area, felzenszwalb(candidate_area, scale=scale, sigma=sigma, min_size=min_size),
-                                    color=(255, 0, 0)))
-    axarr[2].imshow(felzenszwalb(candidate_area, scale=scale, sigma=sigma, min_size=min_size))
-    plt.show()
+    candidate_area = wsi[max(0, location[0] - crop_size):
+                         min(wsi.shape[0], location[0] + 2 * crop_size),
+                         max(0, location[1] - crop_size):
+                         min(wsi.shape[1], location[1] + 2 * crop_size), :]
+
+    if cfg.use_segmentation:
+        clustered_candidate_area = felzenszwalb(candidate_area, scale=1000, sigma=2, min_size=2000)
+    else:
+        clustered_candidate_area = np.zeros(candidate_area.shape[:2])
+
+    source_class = get_area_class(clustered_candidate_area, x_min=crop_size, x_max=2 * crop_size,
+                                                  y_min=crop_size, y_max=2 * crop_size)
+    tile_class = source_class + 1
 
     while not generated:
-        w_location = random.choice([max(0, location[0] - tile_size * (2 ** level)),
+        w_location = random.choice([location[0] - crop_size,
                                     location[0],
-                                    min(wsi.shape[0], location[0] + tile_size * (2 ** level))])
+                                    location[0] + crop_size])
 
-        h_location = random.choice([max(0, location[1] - tile_size * (2 ** level)),
+        h_location = random.choice([location[1] - crop_size,
                                     location[1],
-                                    min(wsi.shape[1], location[1] + tile_size * (2 ** level))])
+                                    location[1] + crop_size])
         if (w_location, h_location) == location:
             continue
         try:
             if cfg.wsi_type == 'GDAL':
                 tile = wsi[w_location:w_location + tile_size,
                            h_location:h_location + tile_size].copy()
-                print(candidate_area.shape, w_location - location[0], h_location - location[1])
+
                 if tile.shape[:2] != (tile_size, tile_size):
                     raise RuntimeError()
+
+                normalized_w = w_location - location[0] + crop_size
+                normalized_h = h_location - location[1] + crop_size
+
+                tile_class = get_area_class(clustered_candidate_area,
+                                            x_min=normalized_w,
+                                            x_max=normalized_w + tile_size,
+                                            y_min=normalized_h,
+                                            y_max=normalized_h + tile_size)
             else:
                 tile = wsi.read_block(rect=(w_location, h_location,
-                                            *([tile_size * (2 ** level)] * 2)),
+                                            *([crop_size] * 2)),
                                       size=([tile_size] * 2))
         except RuntimeError:
             continue
         generated = True
 
-    return tile
+    return tile, source_class == tile_class
 
 
 def apply_augmentation(cfg, tile):
