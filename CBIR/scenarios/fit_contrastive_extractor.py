@@ -67,7 +67,8 @@ def fit_contrastive_extractor(cfg):
 
 
 def get_model(cfg):
-    model = ContrastiveExtractor(embedding_size=cfg.embedding_size,
+    model = ContrastiveExtractor(input_size=cfg.input_size,
+                                 embedding_size=cfg.embedding_size,
                                  conv_hidden_dims=cfg.conv_hidden_dims,
                                  fc_hidden_dims=cfg.fc_hidden_dims)
 
@@ -138,10 +139,17 @@ def normalize(tensor, min, max):
 
 
 def get_tensorboard_writer(cfg):
+    # experiment_name = f'lr={cfg.lr}_' \
+    #                   f'emb_size={cfg.embedding_size}_' \
+    #                   f'near_target={cfg.near_target}_' \
+    #                   f'conv_hidden_dims={cfg.conv_hidden_dims}_' \
+    #                   f'margin={cfg.euclidean_loss_margin}_' \
+    #                   f'use_segm={cfg.use_segmentation}'
+
     experiment_name = f'lr={cfg.lr}_' \
                       f'emb_size={cfg.embedding_size}_' \
+                      f'resnet34_' \
                       f'near_target={cfg.near_target}_' \
-                      f'conv_hidden_dims={cfg.conv_hidden_dims}_' \
                       f'margin={cfg.euclidean_loss_margin}_' \
                       f'use_segm={cfg.use_segmentation}'
 

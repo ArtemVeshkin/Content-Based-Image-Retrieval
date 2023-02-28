@@ -2,7 +2,7 @@ from omegaconf import DictConfig
 import hydra
 
 
-@hydra.main(config_path="config", config_name="config")
+@hydra.main(config_path="config", config_name="config", version_base='1.3')
 def main(cfg: DictConfig) -> None:
     if cfg.mode == 'CBIR_test':
         from CBIR.scenarios.CBIR_test import CBIR_test
@@ -28,6 +28,12 @@ def main(cfg: DictConfig) -> None:
     elif cfg.mode == 'crop_sources':
         from CBIR.scenarios.crop_sources import crop_sources
         crop_sources(cfg.crop_sources)
+    elif cfg.mode == 'COCO_train':
+        from CBIR.scenarios.COCO_train import COCO_train
+        COCO_train(cfg.COCO_train)
+    elif cfg.mode == 'COCO_eval':
+        from CBIR.scenarios.COCO_eval import COCO_eval
+        COCO_eval(cfg.COCO_eval)
     else:
         raise ValueError(f"Unknown mode {cfg.mode}")
 

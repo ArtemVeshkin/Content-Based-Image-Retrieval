@@ -13,18 +13,18 @@ def CBIR_test(cfg):
     for dataset in cfg.classes:
         dataset_name = dataset.name
         database.load_images(to_absolute_path(cfg.data_path + dataset_name), dataset_name)
-        database.extract_features(dataset.name)
+        # database.extract_features(dataset.name)
 
-    database.serialize(to_absolute_path('CBIR_serialized'))
-    database.normalize_features()
+    # database.serialize(to_absolute_path('CBIR_serialized'))
+    # database.normalize_features()
 
     # database.load_svs(path=to_absolute_path('/home/artem/data/PATH-DT-MSU-WSI/WSS1/04.svs'), dataset_name='PATH-DT',
     #                   scales=[5, 10, 15, 20, 25, 30, 35, 40])
     # database.extract_features('PATH-DT')
     # database.serialize(to_absolute_path('CBIR_serialized'))
 
-    # database.deserialize(to_absolute_path(cfg.features_serialization.path))
-    # database.normalize_features()
+    database.deserialize(to_absolute_path(cfg.features_serialization.path))
+    database.normalize_features()
 
     for query_path in cfg.query:
         print('\n', query_path)

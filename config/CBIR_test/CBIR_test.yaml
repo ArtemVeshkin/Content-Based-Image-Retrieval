@@ -2,8 +2,8 @@ data_path: /home/artem/data/CBIR_other_data/arcDataset/
 classes: [
   { name: cropped }
 ]
-feature_extractor_type: stat
-#feature_extractor_type: Contrastive
+#feature_extractor_type: stat
+feature_extractor_type: Contrastive
 #feature_extractor_type: merged_stat_contrastive
 feature_extractor: ${feature_extractors.${CBIR_test.feature_extractor_type}}
 features_serialization: ${features_serialization}
@@ -15,11 +15,20 @@ filter: 'no filter' # 'c2'/'no filter'
 distance: 'mae' # 'mae'/'mse'/'mape'/'mape_modified'/'c2_d_near'/'c2_d_ave'
 LSH_k_bits: 16
 query: [
-  /home/artem/data/CBIR_other_data/arcDataset/cropped/10.jpg,
-  /home/artem/data/CBIR_other_data/arcDataset/cropped/130.jpg,
-  /home/artem/data/CBIR_other_data/arcDataset/cropped/240.jpg,
-  /home/artem/data/CBIR_other_data/arcDataset/cropped/310.jpg,
-  /home/artem/data/CBIR_other_data/arcDataset/cropped/620.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/10.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/130.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/240.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/310.jpg,
+#  /home/artem/data/CBIR_other_data/arcDataset/cropped/620.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/910.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/920.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/930.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/940.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/950.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/960.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/970.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/980.jpg,
+   /home/artem/data/CBIR_other_data/arcDataset/cropped/990.jpg
 ]
 
 scalenet: ${scalenet}

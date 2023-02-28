@@ -1,3 +1,7 @@
+hydra:
+  job:
+    chdir: False
+
 mode: eval
 features_serialization:
   path: /home/artem/dev/Content-Based-Image-Retrieval/CBIR_serialized
@@ -13,4 +17,6 @@ defaults:
   - scalenet: scalenet
   - fit_contrastive_extractor: fit_contrastive_extractor
   - crop_sources: crop_sources
+  - COCO_train: COCO_train
+  - COCO_eval: COCO_eval
   - _self_

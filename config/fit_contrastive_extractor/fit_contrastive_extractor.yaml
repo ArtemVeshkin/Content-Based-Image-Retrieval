@@ -1,4 +1,3 @@
-batch_size: 128
 #wsi_paths: [
 #  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/01.svs',
 #  '/home/artem/data/PATH-DT-MSU-WSI/WSS1/02.svs',
@@ -52,9 +51,11 @@ wsi_paths: [
   '/home/artem/data/CBIR_other_data/arcDataset/Russian Revival architecture/',
   '/home/artem/data/CBIR_other_data/arcDataset/Tudor Revival architecture/',
 ]
+batch_size: 32
 wsi_type: 'GDAL' # 'SVS' / 'GDAL'
 wsi_scale: 40
 tile_size: 112
+input_size: 224
 #level: 1 # [0, 1, 2, ...], where 0 means max scaling
 level: 0 # [0, 1, 2, ...], where 0 means max scaling
 filter_background: True
@@ -64,10 +65,10 @@ summarywriter_logdir: tensorboard_logs
 save_every_steps: 100
 checkpoint_path: /home/artem/dev/Content-Based-Image-Retrieval/Checkpoints/ContrastiveExtractor/checkpoint
 cos_margin: -0.2
-embedding_size: 128
+embedding_size: 256
 values_penalty: 0.05
-lr: 0.0001
-near_target: 0.5
+lr: 0.00001
+near_target: 1.
 use_segmentation: True
 conv_hidden_dims: [16, 32, 64, 128, 256, 512]
 fc_hidden_dims: [256]
